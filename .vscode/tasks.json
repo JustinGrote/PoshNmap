@@ -1,0 +1,107 @@
+// Available variables which can be used inside of strings.
+// ${workspaceRoot}: the root folder of the team
+// ${file}: the current opened file
+// ${relativeFile}: the current opened file relative to workspaceRoot
+// ${fileBasename}: the current opened file's basename
+// ${fileDirname}: the current opened file's dirname
+// ${fileExtname}: the current opened file's extension
+// ${cwd}: the current working directory of the spawned process
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558
+    // for the documentation about the tasks.json format
+	"version": "2.0.0",
+
+    // Powershell Default Tasks
+    "tasks": [
+        {
+            "label": "Build",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "windows": {
+                "command": "powershell.exe"
+            },
+            "osx": {
+                "command": "pwsh"
+            },
+            "linux": {
+                "command": "pwsh"
+            },
+            "args": [
+                "-NoProfile",
+                "-NonInteractive",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-Command",
+                "Invoke-Build"
+            ],
+            "problemMatcher": [
+                "$pester"
+            ]
+        },
+        {
+            "label": "Build with PSCore Preview",
+            "group": "build",
+            "type": "process",
+            "command": "C:\\Program Files\\PowerShell\\6-preview\\pwsh.exe",
+            "args": [
+                "-NoProfile",
+                "-NonInteractive",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-Command",
+                "Invoke-Build"
+            ],
+            "problemMatcher": [
+                "$pester"
+            ],
+            "options": {
+                "cwd": "${workspaceRoot}"
+            }
+        },
+        {
+            "label": "Test",
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "windows": {
+                "command": "powershell.exe"
+            },
+            "osx": {
+                "command": "pwsh"
+            },
+            "linux": {
+                "command": "pwsh"
+            },
+            "args": [
+                "-NoProfile",
+                "-NonInteractive",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-Command",
+                "Invoke-Build Test"
+            ],
+            "problemMatcher": "$pester"
+        },
+        {
+            "label": "Test with PSCore Preview",
+            "group": "test",
+            "type": "process",
+            "command": "C:\\Program Files\\PowerShell\\6-preview\\pwsh.exe",
+            "args": [
+                "-NoProfile",
+                "-NonInteractive",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-Command",
+                "Invoke-Build Test"
+            ],
+            "problemMatcher": "$pester",
+            "options": {
+                "cwd": "${workspaceRoot}"
+            }
+        }
+    ]
+}
