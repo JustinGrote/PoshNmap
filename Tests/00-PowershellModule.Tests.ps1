@@ -16,7 +16,7 @@ if (
 #If an alternate module root was specified, set that to our running directory.
 if ($ModulePath -ne (get-location).path) {Push-Location $ModulePath}
 
-#Find the module manifest. Get-ChildItem's last item is the one closest to the root directory. #FIXME: Do this in a safer manner
+#Find the module manifest. Get-ChildItem's last item is the deepest one available, so it will favor release builds over the raw source, but will use the source module if a release build is unavailable. #FIXME: Do this in a safer manner
 try {
     $moduleManifestFile = Get-ChildItem -File -Recurse *.psd1 -ErrorAction Stop | where name -notmatch '(depend|requirements)\.psd1$'| Select-Object -last 1
     $SCRIPT:moduleDirectory = $moduleManifestFile.directory

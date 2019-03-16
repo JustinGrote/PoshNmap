@@ -4,9 +4,9 @@
 
 [![PSGallery][]][PSGalleryLink] [![PSGalleryDL][]][PSGalleryDLLink]
 
-[![AppV][]][AppVLink] [![ADO][]][ADOLink]  [![AppVTests][]][AppVTestsLink] [![GHRelease][]][GHReleaseLink]
+[![ADO][]][ADOLink] [![GHRelease][]][GHReleaseLink]
 
-[![AppVNext][]][AppVNextLink] [![ADOvNext][]][ADOvNextLink] [![AppVNextTests][]][AppVNextTestsLink] [![GHPreRelease][]][GHPreReleaseLink]
+[![ADOvNext][]][ADOvNextLink] [![GHPreRelease][]][GHPreReleaseLink]
 
 ---
 
