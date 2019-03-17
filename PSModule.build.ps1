@@ -279,15 +279,15 @@ task Version {
         $SCRIPT:ProjectPreReleaseTag = $SCRIPT:ProjectPreReleaseVersion.split('-')[1]
     }
 
-    write-build Green "Task $($task.name)` - Calculated Project Version: $ProjectVersion"
+    write-build Green "Task $($task.name) -  Calculated Project Version: $ProjectVersion"
 
     #Tag the release if this is a GA build
     if ($BranchName -match '^(master|releases?[/-])') {
-        write-build Green "Task $($task.name)` - In Master/Release branch, adding release tag v$ProjectVersion to this build"
+        write-build Green "Task $($task.name) -  In Master/Release branch, adding release tag v$ProjectVersion to this build"
 
         $SCRIPT:isTagRelease = $true
         if ($BranchName -eq 'master') {
-            write-build Green "Task $($task.name)` - In Master branch, marking for General Availability publish"
+            write-build Green "Task $($task.name) -  In Master branch, marking for General Availability publish"
             [Switch]$SCRIPT:IsGARelease = $true
         }
     }
@@ -296,7 +296,7 @@ task Version {
     $SCRIPT:BuildReleasePath = Join-Path $BuildProjectPath $ProjectBuildVersion
     if (-not (Test-Path -pathtype Container $BuildReleasePath)) {New-Item -type Directory $BuildReleasePath | out-null}
     $SCRIPT:BuildReleaseManifest = Join-Path $BuildReleasePath (split-path $env:BHPSModuleManifest -leaf)
-    write-build Green "Task $($task.name)` - Using Release Path: $BuildReleasePath"
+    write-build Green "Task $($task.name) -  Using Release Path: $BuildReleasePath"
 }
 
 #Copy all powershell module "artifacts" to Build Release Path
@@ -408,21 +408,18 @@ task UpdateMetadata Version,CopyFilesToBuildDir,{
 task Pester {
     #Find the latest module
     try {
-        $moduleManifestCandidatePath = join-path (join-path $BuildProjectPath '*') '*.psd1'
-        $moduleManifestCandidates = Get-Item $moduleManifestCandidatePath -ErrorAction stop
-        $moduleManifestPath = ($moduleManifestCandidates | Select-Object -last 1).fullname
-        $moduleDirectory = Split-Path $moduleManifestPath
+        $moduleManifestPath = Get-ChildItem $BuildRoot -File -Recurse *.psd1 -ErrorAction Stop | where name -notmatch '(depend|requirements)\.psd1$'| Select-Object -last 1
+        $moduleDirectory = Split-Path $moduleManifestPath.fullname
     } catch {
         throw "Did not detect any module manifests in $BuildProjectPath. Did you run 'Invoke-Build Build' first?"
     }
 
-    write-verboseheader "Starting Pester Tests..."
-    write-build Green "Task $($task.name)` -  Testing $moduleDirectory"
+    write-build Green "Task $($task.name) - Testing $moduleDirectory"
 
     $PesterResultFile = join-path $env:BHBuildOutput "$env:BHProjectName-TestResults_PS$PSVersion`_$TimeStamp.xml"
 
     $PesterParams = @{
-        Script = @{Path = "Tests"; Parameters = @{ModulePath = (split-path $moduleManifestPath)}}
+        Script = @{Path = "Tests"; Parameters = @{ModulePath = $moduleDirectory}}
         OutputFile = $PesterResultFile
         OutputFormat = "NunitXML"
         PassThru = $true
@@ -461,7 +458,7 @@ task Pester {
 
 task PackageZip {
     $ZipArchivePath = (join-path $env:BHBuildOutput "$env:BHProjectName-$ProjectVersion.zip")
-    write-build Green "Task $($task.name)` - Writing Finished Module to $ZipArchivePath"
+    write-build Green "Task $($task.name) -  Writing Finished Module to $ZipArchivePath"
     #Package the Powershell Module
     Compress-Archive -Path $BuildProjectPath -DestinationPath $ZipArchivePath -Force @PassThruParams
 }
@@ -716,7 +713,7 @@ task InstallPSModule PackageNuGet,{
 ### SuperTasks
 # These are the only supported items to run directly from Invoke-Build
 task Build Clean,Version,CopyFilesToBuildDir,UpdateMetadata
-task Test Version,Pester
+task Test Pester
 task Package Version,PreDeploymentChecks,PackageZip,PackageNuGet
 task Publish Version,PreDeploymentChecks,PublishPSGallery,PublishGitHubRelease
 task Install Version,PreDeploymentChecks,InstallPSModule
