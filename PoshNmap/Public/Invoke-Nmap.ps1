@@ -62,7 +62,7 @@ function Invoke-Nmap {
         $ArgumentList += "-oX","-"
     }
 
-    $nmapresult = Invoke-NmapExe $nmapExe $argumentList $computerName
+    [String]$nmapresult = Invoke-NmapExe $nmapExe $argumentList $computerName
 
     if (-not $nmapResult) {throw "NMAP did not produce any output. Please review any errors that are present above this warning."}
     switch ($OutFormat) {
