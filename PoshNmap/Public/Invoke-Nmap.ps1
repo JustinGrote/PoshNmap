@@ -1,3 +1,4 @@
+#Register-ArgumentCompleter -CommandName "Invoke-Nmap" -ParameterName "Preset" -ScriptBlock {[PoshNmapPresetArguments].GetEnumNames()}
 function Invoke-Nmap {
     <#
     .SYNOPSIS
@@ -10,22 +11,45 @@ function Invoke-Nmap {
     .OUTPUTS
         [PoshNMAP.NMAPResult]
     #>
-
-    [CmdletBinding(DefaultParameterSetName="default")]
+`
+    [CmdletBinding(DefaultParameterSetName="preset")]
     param (
         #A list of nmap host specifications
-        [String[]][Parameter(Position=0,ParameterSetName="Default",ValueFromPipeline)]$computerName = "localhost",
-        #A list of SNMP communities to scan. Defaults to public and private
-        [String[]][Parameter(ParameterSetName="Default")]$snmpCommunityList = @("private","public"),
-        #Specify this if you want the raw (non-Powershell-formatted) NMAP Output
-        [Switch]$Raw,
+        [Parameter(
+            Position=0,
+            ValueFromPipeline
+        )]
+        [String[]]
+        $computerName = "localhost",
+
         #Override the default nmap parameters
-        $ArgumentList = @(
-            "--open",
-            "-T4",
-            "-F"
-        )
+        [String[]]
+        [Parameter(
+            Position=1,
+            ParameterSetName="custom"
+        )]
+        $ArgumentList = (Get-NmapPresetArguments -Preset 'Quick'),
+
+        [String[]]
+        [Parameter(
+            ParameterSetName="preset",
+            ValueFromPipeline
+        )]
+        $Preset = "Quick",
+
+        #A list of SNMP communities to scan. Defaults to public and private
+        [String[]]
+        [Parameter()]
+        $snmpCommunityList = @("private","public"),
+
+        #Choose which format for the output (XML, JSON, HashTable, or PSObject). Default is PSObject
+        [ValidateSet('PSObject','XML','JSON','Hashtable')]
+        [String]$OutFormat = 'PSObject'
     )
+
+    if ($Preset) {
+        $ArgumentList = Get-NmapPresetArguments $Preset
+    }
 
     if ($snmpCommunityList) {
         $snmpCommunityFile = [io.path]::GetTempFileName()
@@ -41,10 +65,20 @@ function Invoke-Nmap {
     $nmapresult = Invoke-NmapExe $nmapExe $argumentList $computerName
 
     if (-not $nmapResult) {throw "NMAP did not produce any output. Please review any errors that are present above this warning."}
-    if ($Raw) {
-        $nmapResult
-    } else {
-        [xml]$nmapresult | ConvertFrom-NmapXML -Format HashTable | % nmaprun
+    switch ($OutFormat) {
+        'XML' {
+            $nmapResult
+        }
+        'JSON' {
+            $nmapResult | ConvertFrom-NmapXML
+        }
+        'PSObject' {
+            $nmapResult | ConvertFrom-NmapXML -OutFormat PSObject
+        }
+        'HashTable' {
+            $nmapResult | ConvertFrom-NmapXML -OutFormat HashTable
+        }
     }
+
     Remove-Item $snmpCommunityFile -Force -ErrorAction SilentlyContinue
 }
