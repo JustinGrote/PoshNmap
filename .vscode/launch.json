@@ -13,6 +13,27 @@
         {
             "type": "PowerShell",
             "request": "launch",
+            "name": "Run Invoke-Build",
+            "script": "Invoke-Build",
+            "args": [
+                "-verbose"
+            ],
+            "cwd": "${workspaceRoot}"
+        },
+        {
+            "type": "PowerShell",
+            "request": "launch",
+            "name": "Run Invoke-Build with Arguments",
+            "script": "Invoke-Build",
+            "args": [
+                "${command:SpecifyScriptArgs}",
+                "-verbose"
+            ],
+            "cwd": "${workspaceRoot}"
+        },
+        {
+            "type": "PowerShell",
+            "request": "launch",
             "name": "PowerShell Launch Current File",
             "script": "${file}",
             "args": [],
@@ -63,23 +84,5 @@
             "args": [],
             "cwd": "${workspaceRoot}"
         },
-        {
-            "type": "PowerShell",
-            "request": "launch",
-            "name": "Run Invoke-Build",
-            "script": "Invoke-Build",
-            "args": [],
-            "cwd": "${workspaceRoot}"
-        },
-        {
-            "type": "PowerShell",
-            "request": "launch",
-            "name": "Run Invoke-Build with Arguments",
-            "script": "Invoke-Build",
-            "args": [
-                "${command:SpecifyScriptArgs}"
-            ],
-            "cwd": "${workspaceRoot}"
-        }
     ]
 }

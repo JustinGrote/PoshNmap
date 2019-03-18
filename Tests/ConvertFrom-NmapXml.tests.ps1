@@ -31,10 +31,19 @@ Describe "ConvertFrom-NmapXml" {
     $asusNmapXmlFile = join-path $Mocks "asusrouter.nmapxml"
     $asusNmapXmlContent = get-content $asusNmapXmlFile
 
-    It "Should Accept a raw string and an xml object" {
+    It "Input: String" {
         [String]($asusNmapXmlContent) | ConvertFrom-NmapXml | Should -Not -BeNullOrEmpty
     }
-    It "Should Accept an XML object" {
+    It "Input: XML" {
         [XML]($asusNmapXmlContent) | ConvertFrom-NmapXml | Should -Not -BeNullOrEmpty
+    }
+    It "Output: JSON by Default" {
+        [XML]($asusNmapXmlContent) | ConvertFrom-NmapXml | ConvertFrom-Json | Should -BeOfType [PSCustomObject]
+    }
+    It "Output: PSObject with -OutFormat PSObject" {
+        [XML]($asusNmapXmlContent) | ConvertFrom-NmapXml -OutFormat PSObject | Should -BeOfType [PSCustomObject]
+    }
+    It "Output: HashTable with -OutFormat HashTable" {
+        [XML]($asusNmapXmlContent) | ConvertFrom-NmapXml -OutFormat HashTable | Should -BeOfType [System.Collections.HashTable]
     }
 }

@@ -32,14 +32,14 @@ Describe "Invoke-Nmap" {
 
     Mock -Modulename PoshNmap Invoke-NmapExe {
         Get-Content -Raw "$Mocks\asusrouter.nmapxml"
-    }.GetNewClosure() #GetNewClosure "Freezes" the mock to use the external variable: https://stackoverflow.com/questions/49681015/access-external-variable-from-with-in-mock-script-block-pester
+    }.GetNewClosure() #GetNewClosure "Freezes" the mock. We use this to expand the variable present inside: https://stackoverflow.com/questions/49681015/access-external-variable-from-with-in-mock-script-block-pester
 
-    It "Produces a hashtable when invoked" {
+    It "Output: PSCustomObject by default" {
         $SCRIPT:nmapResult = Invoke-Nmap
-        $nmapResult | Should -BeOfType System.Collections.HashTable
+        $nmapResult | Should -BeOfType [PSCustomObject]
     }
 
-    It "Basic data verification sanity check" {
-        $nmapresult.host.ports.port | where portid -match '445' | % protocol | should -be 'tcp'
+    It "Output: Data Sanity Check" {
+        $nmapresult.nmaprun.host.ports.port | where portid -match '445' | % protocol | should -be 'tcp'
     }
 }
