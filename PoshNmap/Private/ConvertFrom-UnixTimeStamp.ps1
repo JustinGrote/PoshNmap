@@ -2,7 +2,7 @@ function ConvertFrom-UnixTimestamp{
     param (
         [int]$UnixTimestamp=0,
         #Specify if you wish the time to be returned as UTC instead of the current timezone
-        [switch]$UTC
+        [switch]$AsUTC
     )
 
     #Unix Epoch Start (1/1/1970 12:00:00am UTC)
