@@ -16,7 +16,7 @@ Takes an NMAP run output and converts it into JSON
         [Parameter(ParameterSetName='XML',ValueFromPipeline)][XML[]]$InputObject,
 
         #Choose the format that you want to convert the NMAPXML to. Valid options are: JSON or HashTable
-        [ValidateSet('JSON','HashTable','PSObject')]
+        [ValidateSet('JSON','HashTable','PSObject','PoshNmap','Summary')]
         $OutFormat = 'JSON'
     )
 
@@ -58,8 +58,13 @@ Takes an NMAP run output and converts it into JSON
             'HashTable' {
                 #TODO: PSCore Method, add as potential feature flag
                 #$jsonResult | ConvertFrom-Json -AsHashtable
-                $nmapHashTable = $jsonResult | ConvertFrom-Json | ConvertPSObjectToHashtable
-                return $nmapHashTable
+                return $jsonResult | ConvertFrom-Json | ConvertPSObjectToHashtable
+            }
+            'PoshNmap' {
+                return $jsonResult | ConvertFrom-Json | ConvertPSObjectToHashtable | FormatNmapXml
+            }
+            'Summary' {
+                return $jsonResult | ConvertFrom-Json | ConvertPSObjectToHashtable | FormatNmapXml -Summary
             }
         }
     }
