@@ -59,7 +59,7 @@ function Invoke-Nmap {
         $snmpCommunityList = @("private","public")
     )
 
-    if ($Preset) {
+    if ($Preset -and ($PSCmdlet.ParameterSetName -ne 'Custom')) {
         $nmapPresetArgumentNames = (Get-NmapPresetArguments).keys
         if ($Preset -notin $nmapPresetArgumentNames) {
             throwUser New-Object ArgumentException -ArgumentList "Invoke-Nmap: Value $Preset is not a valid choice. Please choose one of: $($nmapPresetArgumentNames -join ', ')","Preset"
