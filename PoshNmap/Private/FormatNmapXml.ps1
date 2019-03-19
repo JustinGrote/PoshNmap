@@ -39,9 +39,6 @@ The raw formatting is still available as the nmaprun property on the object, to 
             PSTypeName = 'PoshNmapHost'
         }
 
-        #Add raw host reference
-        $entry.nmapResult = $hostnode
-
         # Extract state element of status
         $entry.Status = $hostnode.status.state.Trim()
         if ($entry.Status.length -lt 2) { $entry.Status = $null }
@@ -114,6 +111,10 @@ The raw formatting is still available as the nmaprun property on the object, to 
             }
         }
         $i++  #Progress counter...
+
+        #Add raw host reference
+        $entry.nmapResult = $hostnode
+
         [PSCustomObject]$entry
     }
 }
