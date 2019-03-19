@@ -63,8 +63,8 @@ You must also have Nmap already installed and in your path. Visit nmap.org for v
 [GHPreRelease]: https://img.shields.io/github/downloads-pre/justingrote/PoshNmap/total.svg?logo=github&label=download
 [GHPreReleaseLink]: https://github.com/JustinGrote/PoshNmap/releases
 
-[ADO]: https://dev.azure.com/justingrote/Default/_apis/build/status/JustinGrote.PoshNmap?branchName=master&label=Current
-[ADOLink]: https://dev.azure.com/justingrote/Default/_build
+[ADO]: https://dev.azure.com/justingrote/Github/_apis/build/status/JustinGrote.PoshNmap?branchName=master&label=Current
+[ADOLink]: https://dev.azure.com/justingrote/Github/_build?definitionId=4
 
-[ADOVNext]: https://dev.azure.com/justingrote/Default/_apis/build/status/JustinGrote.PoshNmap?branchName=release/vNext&label=vNext
-[ADOVNextLink]: https://dev.azure.com/justingrote/Default/_build
+[ADOVNext]: https://dev.azure.com/justingrote/Github/_apis/build/status/JustinGrote.PoshNmap?branchName=release/vNext&label=vNext
+[ADOVNextLink]: https://dev.azure.com/justingrote/Github/_build?definitionId=4
