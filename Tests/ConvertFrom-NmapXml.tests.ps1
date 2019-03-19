@@ -3,12 +3,11 @@ param (
     [string]$ModulePath = (Get-Location)
 )
 
-#if we are in the "Tests" directory and there is a PSD file below this one, change to the module directory so relative paths work correctly.
+#if we are in the "Tests" directory, move up a directory
 $currentDir = Get-Location
 if (
     (Test-Path $currentDir -PathType Container) -and
-    $currentDir -match 'Tests$' -and
-    (Get-Item (join-path ".." "*.psd1") | where name -notmatch '\.(depend|requirements)\.psd1$')
+    $currentDir -match 'Tests$'
 ) {
     $ModulePath = (split-path $modulepath)
 }
@@ -44,6 +43,20 @@ Describe "ConvertFrom-NmapXml" {
         [XML]($asusNmapXmlContent) | ConvertFrom-NmapXml -OutFormat PSObject | Should -BeOfType [PSCustomObject]
     }
     It "Output: HashTable with -OutFormat HashTable" {
-        [XML]($asusNmapXmlContent) | ConvertFrom-NmapXml -OutFormat HashTable | Should -BeOfType [System.Collections.HashTable]
+        [XML]($asusNmapXmlContent) | ConvertFrom-NmapXml -OutFormat HashTable | Should -BeOfType [HashTable]
+    }
+    It "Output: NmapResult with -OutFormat PoshNmap" {
+        $nmapResult = [XML]($asusNmapXmlContent) | ConvertFrom-NmapXml -OutFormat PoshNmap
+        $nmapResult | Should -Not -BeNullOrEmpty
+        $nmapResult | ForEach-Object {
+            'PoshNmapHost' | Should -BeIn $PSItem.psobject.typenames
+        }
+    }
+    It "Output: NmapSummary with -OutFormat Summary" {
+        $nmapSummary = [XML]($asusNmapXmlContent) | ConvertFrom-NmapXml -OutFormat Summary
+        $nmapSummary | Should -Not -BeNullOrEmpty
+        $nmapSummary | ForEach-Object {
+            'PoshNmapSummary' | Should -BeIn $PSItem.psobject.typenames
+        }
     }
 }

@@ -8,7 +8,7 @@ function Get-NmapPresetArguments ($Preset) {
         IntenseNoPing = '-T4 -A -v -Pn' -split '\s'
         PingSweep = '-T4 -sn'
         Quick = '-T4 -F' -split '\s'
-        QuickPlus = '-T4 -sV -O -F –version-light' -split '\s'
+        QuickPlus = '-T4 --version-intensity 2 -sV -O -F' -split '\s'
         QuickTraceroute = '-T4 -sn -traceroute' -split '\s'
     }
 

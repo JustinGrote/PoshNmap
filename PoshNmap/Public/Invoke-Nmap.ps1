@@ -44,8 +44,14 @@ function Invoke-Nmap {
         [String]$Preset = "Quick",
 
         #Choose which format for the output (XML, JSON, HashTable, PSObject, or Raw). Default is PSObject
-        [ValidateSet('Raw','PSObject','XML','JSON','Hashtable')]
-        [String]$OutFormat = 'PSObject',
+        [ValidateSet('PoshNmap','Summary','Raw','PSObject','XML','JSON','Hashtable')]
+        [String]$OutFormat = 'PoshNmap',
+
+        #Show all results, not just online hosts
+        [Switch]$All,
+
+        #Perform an SNMP community scan
+        [Switch]$Snmp,
 
         #A list of SNMP communities to scan. Defaults to public and private
         [String[]]
@@ -62,23 +68,27 @@ function Invoke-Nmap {
         }
     }
 
-    if ($snmpCommunityList) {
+    if ($snmp) {
         $snmpCommunityFile = [io.path]::GetTempFileName()
         $snmpCommunityList > $snmpCommunityFile
         $argumentList += '--script','snmp-brute','--script-args',"snmpbrute.communitiesdb=$snmpCommunityFile"
     }
-    $nmapexe = 'nmap.exe'
 
-    if ($OutFormat -eq 'Raw') {
-        Invoke-NmapExe $nmapExe $argumentList $computerName
-        exit $LASTEXITCODE
+    if ($All) {
+        $argumentList += '--open'
     }
 
-    $ArgumentList += "-oX","-"
+    $nmapexe = 'nmap'
+
+    if ($OutFormat -eq 'Raw') {
+        InvokeNmapExe $nmapExe $argumentList $computerName -Raw
+        break
+    }
+
     try {
-        [String]$nmapresult = Invoke-NmapExe $nmapExe $argumentList $computerName
+        [String]$nmapresult = InvokeNmapExe $nmapExe $argumentList $computerName
     } finally {
-        if (Test-Path $snmpCommunityFile) {Remove-Item $snmpCommunityFile -Force -ErrorAction SilentlyContinue}
+        if ($snmp -and (Test-Path $snmpCommunityFile)) {Remove-Item $snmpCommunityFile -Force -ErrorAction SilentlyContinue}
     }
 
 
@@ -87,14 +97,8 @@ function Invoke-Nmap {
         'XML' {
             $nmapResult
         }
-        'JSON' {
-            $nmapResult | ConvertFrom-NmapXML
-        }
-        'PSObject' {
-            $nmapResult | ConvertFrom-NmapXML -OutFormat PSObject
-        }
-        'HashTable' {
-            $nmapResult | ConvertFrom-NmapXML -OutFormat HashTable
+        default {
+            $nmapResult | ConvertFrom-NmapXML -OutFormat $OutFormat
         }
     }
 }
