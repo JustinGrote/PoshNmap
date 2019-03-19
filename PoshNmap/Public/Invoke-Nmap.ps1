@@ -47,6 +47,9 @@ function Invoke-Nmap {
         [ValidateSet('PoshNmap','Summary','Raw','PSObject','XML','JSON','Hashtable')]
         [String]$OutFormat = 'PoshNmap',
 
+        #Perform an SNMP community scan
+        [Switch]$Snmp,
+
         #A list of SNMP communities to scan. Defaults to public and private
         [String[]]
         [Parameter()]
@@ -62,7 +65,7 @@ function Invoke-Nmap {
         }
     }
 
-    if ($snmpCommunityList) {
+    if ($snmp) {
         $snmpCommunityFile = [io.path]::GetTempFileName()
         $snmpCommunityList > $snmpCommunityFile
         $argumentList += '--script','snmp-brute','--script-args',"snmpbrute.communitiesdb=$snmpCommunityFile"
@@ -78,7 +81,7 @@ function Invoke-Nmap {
     try {
         [String]$nmapresult = Invoke-NmapExe $nmapExe $argumentList $computerName
     } finally {
-        if (Test-Path $snmpCommunityFile) {Remove-Item $snmpCommunityFile -Force -ErrorAction SilentlyContinue}
+        if ($snmp -and (Test-Path $snmpCommunityFile)) {Remove-Item $snmpCommunityFile -Force -ErrorAction SilentlyContinue}
     }
 
 
