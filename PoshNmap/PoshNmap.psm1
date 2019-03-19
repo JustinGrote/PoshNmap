@@ -23,12 +23,12 @@ if ($AssembliesToLoad) {
         }
         $AssembliesToLoad = $TempAssembliesToLoad
         write-host -fore green "Temp Assemblies used! Path: $($tempassembilestoload -join ',')"
-    }
+#    }
 
     $assembliestoLoad | Foreach-Object {
         [Reflection.Assembly]::LoadFile($AssembliesToLoad)
     }
-#}
+}
 
 #Dot source the files
 Foreach($FolderItem in 'Private','Public') {
