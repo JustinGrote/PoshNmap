@@ -12,6 +12,21 @@
 
 This project's goal is to deliver an effective wrapper around the Nmap Network Discovery tool, providing Powershell-y behavior and sensible autocomplete as well as formatting output into usable, parseable Powershell objects for better filtering and analysis than trying to use the nmap raw text or XML output formats.
 
+# Demos
+
+## Simple Scan
+
+[Basic Invoke-Nmap Google Scan](./images/BasicInvokeNmapGoogle.gif)
+
+## Simple Scan with Custom Arguments (nmap-style)
+
+[Scan of Home Router using QuickPlus Preset](./images/NmapCustomArguments.gif)
+
+## Scan of Home Router using QuickPlus Preset (Includes OS/Service Fingerprinting)
+
+[Scan of Home Router using QuickPlus Preset](./images/InvokeNmapQuickPlus.gif)
+
+
 
 [PSGallery]: https://img.shields.io/powershellgallery/v/PoshNmap.svg?logo=windows&label=Powershell+Gallery+Latest
 [PSGalleryLink]: https://www.powershellgallery.com/packages/PoshNmap
