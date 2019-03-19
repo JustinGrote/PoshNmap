@@ -48,14 +48,14 @@ Describe "ConvertFrom-NmapXml" {
     It "Output: NmapResult with -OutFormat PoshNmap" {
         $nmapResult = [XML]($asusNmapXmlContent) | ConvertFrom-NmapXml -OutFormat PoshNmap
         $nmapResult | Should -Not -BeNullOrEmpty
-        $nmapResult.foreach{
+        $nmapResult | ForEach-Object {
             'PoshNmapHost' | Should -BeIn $PSItem.psobject.typenames
         }
     }
     It "Output: NmapSummary with -OutFormat Summary" {
         $nmapSummary = [XML]($asusNmapXmlContent) | ConvertFrom-NmapXml -OutFormat Summary
         $nmapSummary | Should -Not -BeNullOrEmpty
-        $nmapSummary.foreach{
+        $nmapSummary | ForEach-Object {
             'PoshNmapSummary' | Should -BeIn $PSItem.psobject.typenames
         }
     }

@@ -1,3 +1,5 @@
+Update-TypeData -TypeName PoshNmapHost -DefaultDisplayPropertySet IPv4,FQDN,Status,OpenPorts -Force
+
 function FormatNmapXml {
 <#
 .SYNOPSIS
@@ -83,6 +85,8 @@ The raw formatting is still available as the nmaprun property on the object, to 
             #Provide a nicer ToString Output
             $entry.Ports | Add-Member -MemberType ScriptMethod -Name ToString -Force -Value {$this.protocol,$this.port -join ':'}
         }
+
+        $entry.OpenPorts = $entry.ports.count
 
         # If there is 100% Accuracy OS, show it
         $CertainOS = $hostnode.os.osmatch | where {$_.accuracy -eq 100} | select -first 1

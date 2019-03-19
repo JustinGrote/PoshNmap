@@ -44,8 +44,8 @@ function Invoke-Nmap {
         [String]$Preset = "Quick",
 
         #Choose which format for the output (XML, JSON, HashTable, PSObject, or Raw). Default is PSObject
-        [ValidateSet('Raw','PSObject','XML','JSON','Hashtable')]
-        [String]$OutFormat = 'PSObject',
+        [ValidateSet('PoshNmap','Summary','Raw','PSObject','XML','JSON','Hashtable')]
+        [String]$OutFormat = 'PoshNmap',
 
         #A list of SNMP communities to scan. Defaults to public and private
         [String[]]
@@ -87,14 +87,8 @@ function Invoke-Nmap {
         'XML' {
             $nmapResult
         }
-        'JSON' {
-            $nmapResult | ConvertFrom-NmapXML
-        }
-        'PSObject' {
-            $nmapResult | ConvertFrom-NmapXML -OutFormat PSObject
-        }
-        'HashTable' {
-            $nmapResult | ConvertFrom-NmapXML -OutFormat HashTable
+        default {
+            $nmapResult | ConvertFrom-NmapXML -OutFormat $OutFormat
         }
     }
 }
