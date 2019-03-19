@@ -30,7 +30,7 @@ Describe "Invoke-Nmap" {
     $SCRIPT:nmapResult = "Test"
     $Mocks = (join-path $PSScriptRoot "Mocks")
 
-    Mock -Modulename PoshNmap Invoke-NmapExe {
+    Mock -Modulename PoshNmap InvokeNmapExe {
         Get-Content -Raw "$Mocks\asusrouter.nmapxml"
     }.GetNewClosure() #GetNewClosure "Freezes" the mock. We use this to expand the variable present inside: https://stackoverflow.com/questions/49681015/access-external-variable-from-with-in-mock-script-block-pester
 
