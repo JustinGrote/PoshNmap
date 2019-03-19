@@ -16,15 +16,15 @@ This project's goal is to deliver an effective wrapper around the Nmap Network D
 
 ## Simple Scan
 
-[Basic Invoke-Nmap Google Scan](./images/BasicInvokeNmapGoogle.gif)
+![](./images/BasicInvokeNmapGoogle.gif)
 
 ## Simple Scan with Custom Arguments (nmap-style)
 
-[Scan of Home Router using QuickPlus Preset](./images/NmapCustomArguments.gif)
+![](./images/NmapCustomArguments.gif)
 
 ## Scan of Home Router using QuickPlus Preset (Includes OS/Service Fingerprinting)
 
-[Scan of Home Router using QuickPlus Preset](./images/InvokeNmapQuickPlus.gif)
+![](./images/InvokeNmapQuickPlus.gif)
 
 
 
