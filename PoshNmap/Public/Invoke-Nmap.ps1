@@ -47,6 +47,9 @@ function Invoke-Nmap {
         [ValidateSet('PoshNmap','Summary','Raw','PSObject','XML','JSON','Hashtable')]
         [String]$OutFormat = 'PoshNmap',
 
+        #Show all results, not just online hosts
+        [Switch]$All,
+
         #Perform an SNMP community scan
         [Switch]$Snmp,
 
@@ -70,16 +73,20 @@ function Invoke-Nmap {
         $snmpCommunityList > $snmpCommunityFile
         $argumentList += '--script','snmp-brute','--script-args',"snmpbrute.communitiesdb=$snmpCommunityFile"
     }
-    $nmapexe = 'nmap.exe'
 
-    if ($OutFormat -eq 'Raw') {
-        Invoke-NmapExe $nmapExe $argumentList $computerName
-        exit $LASTEXITCODE
+    if ($All) {
+        $argumentList += '--open'
     }
 
-    $ArgumentList += "-oX","-"
+    $nmapexe = 'nmap'
+
+    if ($OutFormat -eq 'Raw') {
+        InvokeNmapExe $nmapExe $argumentList $computerName -Raw
+        break
+    }
+
     try {
-        [String]$nmapresult = Invoke-NmapExe $nmapExe $argumentList $computerName
+        [String]$nmapresult = InvokeNmapExe $nmapExe $argumentList $computerName
     } finally {
         if ($snmp -and (Test-Path $snmpCommunityFile)) {Remove-Item $snmpCommunityFile -Force -ErrorAction SilentlyContinue}
     }

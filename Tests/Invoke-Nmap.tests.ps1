@@ -39,7 +39,11 @@ Describe "Invoke-Nmap" {
         $nmapResult | Should -BeOfType [PSCustomObject]
     }
 
-    It "Output: Data Sanity Check" {
-        $nmapresult.nmaprun.host.ports.port | where portid -match '445' | % protocol | should -be 'tcp'
+    It "Output: PoshNmap Output Data Sanity Check" {
+        (Invoke-Nmap -OutFormat PSObject).nmaprun.host.ports.port | where portid -match '445' | % protocol | should -be 'tcp'
+    }
+
+    It "Output: XML Data Sanity Check" {
+        (Invoke-Nmap -OutFormat PSObject).nmaprun.host.ports.port | where portid -match '445' | % protocol | should -be 'tcp'
     }
 }
