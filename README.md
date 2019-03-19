@@ -1,4 +1,4 @@
-
+![](images/poshnmap.png)
 
 # PoshNmap
 
@@ -12,20 +12,43 @@
 
 This project's goal is to deliver an effective wrapper around the Nmap Network Discovery tool, providing Powershell-y behavior and sensible autocomplete as well as formatting output into usable, parseable Powershell objects for better filtering and analysis than trying to use the nmap raw text or XML output formats.
 
-# Demos
+# Why
+
+People are constantly trying to reinvent the wheel on network discovery in Powershell, via Test-Netconnection, Test-Connection, ping sweep scripts. Immediately they realize the timeout issues with these options make them slow, slow, slow. Nmap is an extremely well optimized and mature tool for this purpose, and available everywhere Powershell Core is. However, its syntax is obtuse, and its default output does not lend itself well to parsing and analytics by other tools. PoshNmap aims to solve those problems by providing a friendly Powershell interface to the tool.
+
+# Features
+
+* Powershell Cmdlet to interact with Nmap in a friendly way.
+* Intellisense and Tab Autocomplete for relevant parameters (-Preset, -OutFormat, etc.)
+* Power users can do advanced scans with -ArgumentList parameter
+* Real time status updates via Write-Progress including percent complete and ETA
+* Default output is a friendly list of Powershell objects representing scanned hosts
+* Multiple output format options: Raw Nmap, XML, JSON, PSObject, Hashtable
+* Detailed Verbose output including the underlying nmap command line that was run
+
+# Demo
 
 ## Simple Scan
 
-![](./images/BasicInvokeNmapGoogle.gif)
+![](images/BasicInvokeNmapGoogle.gif)
 
 ## Simple Scan with Custom Arguments (nmap-style)
 
-![](./images/NmapCustomArguments.gif)
+![](images/NmapCustomArguments.gif)
 
 ## Scan of Home Router using QuickPlus Preset (Includes OS/Service Fingerprinting)
 
-![](./images/InvokeNmapQuickPlus.gif)
+![](images/InvokeNmapQuickPlus.gif)
 
+## Scan using various output formats
+
+![](images/OutputFormats.gif)
+
+# Installation
+
+Visit the [Powershell Gallery](https://www.powershellgallery.com/packages/PoshNmap) for installation options.
+
+You must also have Nmap already installed and in your path. Visit nmap.org for various install options. It is usually available in Various package managers, and is available in Chocolatey for windows with `choco install nmap`
 
 
 [PSGallery]: https://img.shields.io/powershellgallery/v/PoshNmap.svg?logo=windows&label=Powershell+Gallery+Latest
