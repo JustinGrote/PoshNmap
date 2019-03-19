@@ -1,18 +1,9 @@
-#Get JSON settings files
-$ModuleSettings = @( Get-ChildItem -Path $PSScriptRoot\Settings\*.json -ErrorAction SilentlyContinue )
-
-
-#Determine which assembly versions to load
-#See if .Net Standard 2.0 is available on the system and if not, load the legacy Net 4.0 library
-try {
-    Add-Type -AssemblyName 'netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51' -ErrorAction Stop
-    #If netstandard is not available it won't get this far
-    $dotNetTarget = "netstandard2"
-} catch {
+if ($psEdition -ne 'Core') {
     $dotNetTarget = "net40-client"
 }
 
 $AssembliesToLoad = Get-ChildItem -Path "$PSScriptRoot\lib\*-$dotNetTarget.dll" -ErrorAction SilentlyContinue
+
 if ($AssembliesToLoad) {
     #If we are in a build or a pester test, load assemblies from a temporary file so they don't lock the original file
     #This helps to prevent cleaning problems due to a powershell session locking the file because unloading a module doesn't unload assemblies
@@ -33,8 +24,9 @@ if ($AssembliesToLoad) {
         $AssembliesToLoad = $TempAssembliesToLoad
     }
 
-    write-verbose "Loading Assemblies for .NET target: $dotNetTarget"
-    Add-Type -Path $AssembliesToLoad.fullname -ErrorAction Stop
+    $assembliestoLoad | Foreach-Object {
+        [Reflection.Assembly]::LoadFile($AssembliesToLoad)
+    }
 }
 
 #Dot source the files
