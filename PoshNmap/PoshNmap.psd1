@@ -15,7 +15,7 @@ RootModule = 'PoshNmap.psm1'
 ModuleVersion = '0.0.1'
 
 # Supported PSEditions
-# CompatiblePSEditions = @()
+CompatiblePSEditions = @('Desktop','Core')
 
 # ID used to uniquely identify this module
 GUID = 'f376332e-0eb0-4e82-8d7f-0632a327ae6b'
@@ -33,7 +33,7 @@ Copyright = '(c) Justin Grote. All rights reserved.'
 Description = 'A wrapper for NMAP Network Discovery'
 
 # Minimum version of the PowerShell engine required by this module
-# PowerShellVersion = ''
+PowerShellVersion = '5.1'
 
 # Name of the PowerShell host required by this module
 # PowerShellHostName = ''
