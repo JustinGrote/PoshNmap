@@ -520,7 +520,7 @@ task PublishGitHubRelease -if {-not $SkipPublish} Package,Test,{
     }
 
     if (-not $GitHubAPIKey) {
-        if (get-command 'get-storedcredential') {
+        if (get-command 'get-storedcredential' -erroraction SilentlyContinue) {
             write-build Green "Detected Github API key in Windows Credential Manager, using that for GitHub Release"
             $WinCredMgrGitAPIKey = get-storedcredential -target 'LegacyGeneric:target=git:https://github.com' -erroraction silentlycontinue
             if ($WinCredMgrGitAPIKey) {
