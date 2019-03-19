@@ -17,7 +17,7 @@ This project's goal is to deliver an effective wrapper around the Nmap Network D
 People are constantly trying to reinvent the wheel on network discovery in Powershell, via Test-Netconnection, Test-Connection, ping sweep scripts. Immediately they realize the timeout issues with these options make them slow, slow, slow. Nmap is an extremely well optimized and mature tool for this purpose, and available everywhere Powershell Core is. However, its syntax is obtuse, and its default output does not lend itself well to parsing and analytics by other tools. PoshNmap aims to solve those problems by providing a friendly Powershell interface to the tool.
 
 # Features
-
+* PS 5.1 and Core Compatible
 * Powershell Cmdlet to interact with Nmap in a friendly way.
 * Intellisense and Tab Autocomplete for relevant parameters (-Preset, -OutFormat, etc.)
 * Power users can do advanced scans with -ArgumentList parameter
