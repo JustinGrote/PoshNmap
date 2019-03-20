@@ -40,7 +40,7 @@ Describe "Invoke-Nmap" {
     }
 
     It "Output: PoshNmap Output Data Sanity Check" {
-        (Invoke-Nmap -OutFormat PSObject).nmaprun.host.ports.port | where portid -match '445' | % protocol | should -be 'tcp'
+        (Invoke-Nmap).nmapresult.ports.port | where portid -match '445' | % protocol | should -be 'tcp'
     }
 
     It "Output: XML Data Sanity Check" {
