@@ -28,12 +28,12 @@ function Invoke-Nmap {
         $computerName = "localhost",
 
         #Specify raw argument parameters to nmap
-        [String[]]
         [Parameter(
             ParameterSetName="custom",
             Mandatory,
             Position=1
         )]
+        [String[]]
         $ArgumentList,
 
         [String]
@@ -58,6 +58,7 @@ function Invoke-Nmap {
         [Parameter()]
         $snmpCommunityList = @("private","public")
     )
+    if ($ArgumentList) {$ArgumentList = $ArgumentList.split(' ')}
 
     if ($Preset -and ($PSCmdlet.ParameterSetName -ne 'Custom')) {
         $nmapPresetArgumentNames = (Get-NmapPresetArguments).keys
@@ -74,7 +75,7 @@ function Invoke-Nmap {
         $argumentList += '--script','snmp-brute','--script-args',"snmpbrute.communitiesdb=$snmpCommunityFile"
     }
 
-    if ($All) {
+    if (-not $All) {
         $argumentList += '--open'
     }
 
