@@ -50,14 +50,15 @@ function Invoke-Nmap {
         #Show all results, not just online hosts
         [Switch]$All,
 
-        #Perform an SNMP community scan
+        #Perform an SNMP community scan. This is also done automatically with the "snmp" preset
         [Switch]$Snmp,
 
         #A list of SNMP communities to scan. Defaults to public and private
         [String[]]
         [Parameter()]
-        $snmpCommunityList = @("private","public")
+        $snmpCommunityList = @("public","private")
     )
+
     if ($ArgumentList) {$ArgumentList = $ArgumentList.split(' ')}
 
     if ($Preset -and ($PSCmdlet.ParameterSetName -ne 'Custom')) {
@@ -69,6 +70,7 @@ function Invoke-Nmap {
         }
     }
 
+    if ($Preset -eq 'snmp') {$snmp = $true}
     if ($snmp) {
         $snmpCommunityFile = [io.path]::GetTempFileName()
         #Special file format required
@@ -92,7 +94,6 @@ function Invoke-Nmap {
     } finally {
         if ($snmp -and (Test-Path $snmpCommunityFile)) {Remove-Item $snmpCommunityFile -Force -ErrorAction SilentlyContinue}
     }
-
 
     if (-not $nmapResult) {throwUser "NMAP did not produce any output. Please review any errors that are present above this warning."}
     switch ($OutFormat) {

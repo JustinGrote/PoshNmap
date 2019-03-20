@@ -10,6 +10,7 @@ function Get-NmapPresetArguments ($Preset) {
         Quick = '-T4 -F'
         QuickPlus = '-T4 --version-intensity 2 -sV -O -F'
         QuickTraceroute = '-T4 -sn -traceroute'
+        Snmp = '-T4 -sU -p U:161'
     }
 
     #The call operator wants this as an array
