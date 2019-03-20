@@ -71,7 +71,8 @@ function Invoke-Nmap {
 
     if ($snmp) {
         $snmpCommunityFile = [io.path]::GetTempFileName()
-        $snmpCommunityList > $snmpCommunityFile
+        #Special file format required
+        ($snmpCommunityList -join "`n") + "`n" | Set-Content -NoNewLine -Encoding ASCII -Path $snmpCommunityFile -Force
         $argumentList += '--script','snmp-brute','--script-args',"snmp-brute.communitiesdb=$snmpCommunityFile"
     }
 
