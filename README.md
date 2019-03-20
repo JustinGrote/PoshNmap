@@ -50,6 +50,9 @@ Visit the [Powershell Gallery](https://www.powershellgallery.com/packages/PoshNm
 
 You must also have Nmap already installed and in your path. Visit nmap.org for various install options. It is usually available in Various package managers, and is available in Chocolatey for windows with `choco install nmap`
 
+#Output Notes
+
+Currently all outputs but the default PoshNmap output can be considered "stable" and used as input to other scripts or commands. The PoshNmap output "nmapResult" property is also stable, however all other properties should be considered "in flux" and may change in minor revisions "0.x.0" without notice until this project reaches 1.0.0
 
 [PSGallery]: https://img.shields.io/powershellgallery/v/PoshNmap.svg?logo=windows&label=Powershell+Gallery+Latest
 [PSGalleryLink]: https://www.powershellgallery.com/packages/PoshNmap
