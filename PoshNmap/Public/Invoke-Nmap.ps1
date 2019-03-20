@@ -72,7 +72,7 @@ function Invoke-Nmap {
     if ($snmp) {
         $snmpCommunityFile = [io.path]::GetTempFileName()
         $snmpCommunityList > $snmpCommunityFile
-        $argumentList += '--script','snmp-brute','--script-args',"snmpbrute.communitiesdb=$snmpCommunityFile"
+        $argumentList += '--script','snmp-brute','--script-args',"snmp-brute.communitiesdb=$snmpCommunityFile"
     }
 
     if (-not $All) {
