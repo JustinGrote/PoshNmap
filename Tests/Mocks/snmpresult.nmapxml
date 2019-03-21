@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE nmaprun>
+<?xml-stylesheet href="file:///C:/Program Files (x86)/Nmap/nmap.xsl" type="text/xsl"?>
+<!-- Nmap 7.70 scan initiated Thu Mar 21 10:00:08 2019 as: &quot;C:\\Program Files (x86)\\Nmap\\nmap.exe&quot; -T4 -sU -p 161 -&#45;script snmp-brute -oX snmpresult.nmapxml 192.168.111.1 -->
+<nmaprun scanner="nmap" args="&quot;C:\\Program Files (x86)\\Nmap\\nmap.exe&quot; -T4 -sU -p 161 -&#45;script snmp-brute -oX snmpresult.nmapxml 192.168.111.1" start="1553187608" startstr="Thu Mar 21 10:00:08 2019" version="7.70" xmloutputversion="1.04">
+<scaninfo type="udp" protocol="udp" numservices="1" services="161"/>
+<verbose level="0"/>
+<debugging level="0"/>
+<host starttime="1553187608" endtime="1553187612"><status state="up" reason="arp-response" reason_ttl="0"/>
+<address addr="192.168.111.1" addrtype="ipv4"/>
+<address addr="AC:9E:17:A7:17:88" addrtype="mac" vendor="Asustek Computer"/>
+<hostnames>
+<hostname name="router.asus.com" type="PTR"/>
+</hostnames>
+<ports><port protocol="udp" portid="161"><state state="open" reason="udp-response" reason_ttl="64"/><service name="snmp" method="table" conf="3"/><script id="snmp-brute" output="&#xa;  public - Valid credentials&#xa;  private - Valid credentials"><table>
+<elem key="password">public</elem>
+<elem key="state">Valid credentials</elem>
+</table>
+<table>
+<elem key="password">private</elem>
+<elem key="state">Valid credentials</elem>
+</table>
+</script></port>
+</ports>
+<times srtt="125" rttvar="4000" to="100000"/>
+</host>
+<runstats><finished time="1553187612" timestr="Thu Mar 21 10:00:12 2019" elapsed="4.95" summary="Nmap done at Thu Mar 21 10:00:12 2019; 1 IP address (1 host up) scanned in 4.95 seconds" exit="success"/><hosts up="1" down="0" total="1"/>
+</runstats>
+</nmaprun>
