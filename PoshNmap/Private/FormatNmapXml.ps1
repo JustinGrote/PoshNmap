@@ -1,4 +1,4 @@
-Update-TypeData -TypeName PoshNmapHost -DefaultDisplayPropertySet IPv4,FQDN,Status,Ports -Force
+Update-TypeData -TypeName PoshNmapHost -DefaultDisplayPropertySet IPv4,FQDN,Status,OpenPorts -Force
 
 function FormatNmapXml {
 <#
@@ -37,19 +37,21 @@ The raw formatting is still available as the nmaprun property on the object, to 
         $service = $null
         $entry = [ordered]@{
             PSTypeName = 'PoshNmapHost'
+            Hostname = $null
             Status = ($hostnode.status.state.Trim() | where length -ge 2)
             FQDNs = $hostnode.hostnames.hostname.name | select -Unique
-            FQDN = $entry.FQDNs | select -first 1
-            Hostname = $entry.FQDN -replace '^(\w+)\..*$','$1'
+            FDQN = $null
             IPv4 = $null
             IPv6 = $null
             MAC = $null
-            OpenPorts = $entry.ports.count
             #Arraylist used for performance as this can get large quickly
             Ports = New-Object Collections.ArrayList
+            OpenPorts = $null
         }
-
-        FormatStringOut -InputObject $entry.Ports {$hostnode.ports.port | measure | % count}
+        $entry.FQDN = $entry.FQDNs | select -first 1
+        $entry.Hostname = $entry.FQDN -replace '^(\w+)\..*$','$1'
+        $entry.OpenPorts = $entry.ports.count
+        FormatStringOut -InputObject $entry.Ports {$this.ports | measure | % count}
 
         # Process each of the supplied address properties, extracting by type.
         foreach ($addressItem in $hostnode.address) {
