@@ -7,11 +7,12 @@ Change what is shown when the supplied object is cast to a string. Use $this to 
 #>
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory,ValueFromPipeline)]$inputObject,
+        [Parameter(ValueFromPipeline)]$inputObject,
         [Parameter(Mandatory,Position=0)][ScriptBlock]$scriptBlock
     )
 
     process {
+        if (-not $inputObject) {continue}
         $AddMemberParams = @{
             InputObject = $inputObject
             MemberType = 'ScriptMethod'

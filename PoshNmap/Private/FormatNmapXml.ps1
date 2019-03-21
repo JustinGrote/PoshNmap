@@ -71,7 +71,7 @@ The raw formatting is still available as the nmaprun property on the object, to 
                 ScriptResult = @{}
             }
             $portResult | FormatStringOut -scriptblock {$this.protocol,$this.port -join ':'}
-            $portResult.state | FormatStringOut -scriptblock {$this.state}
+            $portResult.State | FormatStringOut -scriptblock {$this.state}
             $portResult.Services | FormatStringOut -scriptblock {($this.name,$this.product -join ':') + " ($($this.conf * 10)%)"}
 
             #TODO: Refactor this now that I'm better at Powershell :)
