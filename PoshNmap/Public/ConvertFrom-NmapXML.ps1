@@ -56,15 +56,15 @@ Takes an NMAP run output and converts it into JSON
                 return $jsonResult | ConvertFrom-Json
             }
             'HashTable' {
-                #TODO: PSCore Method, add as potential feature flag
+                #TODO: PSCore Method, add as potential feature flag but for now use same method for both to avoid incompatibilities
                 #$jsonResult | ConvertFrom-Json -AsHashtable
                 return $jsonResult | ConvertFrom-Json | ConvertPSObjectToHashtable
             }
             'PoshNmap' {
-                return $jsonResult | ConvertFrom-Json | ConvertPSObjectToHashtable | FormatNmapXml
+                return $jsonResult | ConvertFrom-Json | FormatNmapXml
             }
             'Summary' {
-                return $jsonResult | ConvertFrom-Json | ConvertPSObjectToHashtable | FormatNmapXml -Summary
+                return $jsonResult | ConvertFrom-Json | FormatNmapXml -Summary
             }
         }
     }

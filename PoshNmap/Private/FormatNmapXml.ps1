@@ -15,7 +15,7 @@ The raw formatting is still available as the nmaprun property on the object, to 
     [CmdletBinding()]
     param (
         #Nmaprun output from ConvertFrom-NmapXml. We use hashtable because it's the easiest to manipulate quickly
-        [Parameter(ValueFromPipeline)][Hashtable]$InputNmapXml,
+        [Parameter(ValueFromPipeline)]$InputNmapXml,
         #Return a summary of the scan rather than individual hosts
         [Switch]$Summary
     )
@@ -34,59 +34,82 @@ The raw formatting is still available as the nmaprun property on the object, to 
         write-progress -Activity "Parsing NMAP Result" -Status "Processing Scan Entries" -CurrentOperation "Processing $i of $itotal" -PercentComplete (($i/$itotal)*100)
 
         # Init variables, with $entry being the custom object for each <host>.
-        $service = " " #service needs to be a single space.
+        $service = $null
         $entry = [ordered]@{
             PSTypeName = 'PoshNmapHost'
+            Hostname = $null
+            Status = ($hostnode.status.state.Trim() | where length -ge 2)
+            FQDNs = $hostnode.hostnames.hostname.name | select -Unique
+            FDQN = $null
+            IPv4 = $null
+            IPv6 = $null
+            MAC = $null
+            #Arraylist used for performance as this can get large quickly
+            Ports = New-Object Collections.ArrayList
+            OpenPorts = $hostnode.ports | measure | % count
         }
-
-        # Extract state element of status
-        $entry.Status = $hostnode.status.state.Trim()
-        if ($entry.Status.length -lt 2) { $entry.Status = $null }
-
-        # Extract fully-qualified domain name(s), removing any duplicates.
-        $entry.FQDNs = $hostnode.hostnames.hostname.name | select -Unique
         $entry.FQDN = $entry.FQDNs | select -first 1
+        $entry.Hostname = $entry.FQDN -replace '^(\w+)\..*$','$1'
+        FormatStringOut -InputObject $entry.Ports {$this.ports | measure | % count}
 
-        # Note that this code cheats, it only gets the hostname of the first FQDN if there are multiple FQDNs.
-        if ($entry.FQDN -eq $null) { $entry.HostName = $null }
-        elseif ($entry.FQDN -like "*.*") { $entry.HostName = $entry.FQDN.Substring(0,$entry.FQDN.IndexOf(".")) }
-        else { $entry.HostName = $entry.FQDN }
-
-        # Process each of the <address> nodes, extracting by type.
-        $hostnode.address | foreach-object {
-            if ($_.addrtype -eq "ipv4") { $entry.IPv4 += $_.addr + " "}
-            if ($_.addrtype -eq "ipv6") { $entry.IPv6 += $_.addr + " "}
-            if ($_.addrtype -eq "mac")  { $entry.MAC  += $_.addr + " "}
+        # Process each of the supplied address properties, extracting by type.
+        foreach ($addressItem in $hostnode.address) {
+            switch ($addressItem.addrtype) {
+                "ipv4" { $entry.IPv4 += $addressItem.addr}
+                "ipv6" { $entry.IPv6 += $addressItem.addr}
+                "mac" { $entry.MAC += $addressItem.addr}
+            }
         }
-        if ($entry.IPv4 -eq $null) { $entry.IPv4 = $null } else { $entry.IPv4 = $entry.IPv4.Trim()}
-        if ($entry.IPv6 -eq $null) { $entry.IPv6 = $null } else { $entry.IPv6 = $entry.IPv6.Trim()}
-        if ($entry.MAC  -eq $null) { $entry.MAC  = $null }  else { $entry.MAC  = $entry.MAC.Trim()}
 
+        $hostnode.ports.port | foreach-object {
+            $portResult = [pscustomobject][ordered]@{
+                PSTypeName="PoshNmapPort"
+                Protocol=$_.protocol
+                Port=$_.portid
+                Services=$_.service
+                State=$_.state
+                ScriptResult = @{}
+            }
+            $portResult | FormatStringOut -scriptblock {$this.protocol,$this.port -join ':'}
+            $portResult.state | FormatStringOut -scriptblock {$this.state}
+            $portResult.Services | FormatStringOut -scriptblock {($this.name,$this.product -join ':') + " ($($this.conf * 10)%)"}
 
-        # Process all ports from <ports><port>, and note that <port> does not contain an array if it only has one item in it.
-        if ($hostnode.ports.port -eq $null) { $entry.Ports = $null ; $entry.Services = $null }
-        else
-        {
-            $entry.Ports = @()
+            #TODO: Refactor this now that I'm better at Powershell :)
+            # Build Services property. What a mess...but exclude non-open/non-open|filtered ports and blank service info, and exclude servicefp too for the sake of tidiness.
+            if ($_.state.state -like "open*" -and ($_.service.tunnel.length -gt 2 -or $_.service.product.length -gt 2 -or $_.service.proto.length -gt 2)) {
 
-            $hostnode.ports.port | foreach-object {
-                if ($_.service.name -eq $null) { $service = "unknown" } else { $service = $_.service.name }
-                $entry.Ports += [ordered]@{
-                    Protocol=$_.protocol
-                    Port=$_.portid
-                    Service=$service
-                    State=$_.state.state
+                $entry.Services += ($_.protocol,$_.portid,$service -join ':')+
+                    ':'+
+                    ($_.service.product,$_.service.version,$_.service.tunnel,$_.service.proto,$_.service.rpcnum -join " ").Trim() +
+                    " <" +
+                    ([Int] $_.service.conf * 10) + "%-confidence>$OutputDelimiter"
+            }
+
+            #Port Script Result Processing
+            foreach ($scriptItem in $_.script) {
+                $scriptResultEntry = [ordered]@{
+                    PSTypeName = 'PoshNmapScriptResult'
+                    id = $ScriptItem.id
+                    output = $ScriptItem.output
+                    table = [Collections.Arraylist]@()
                 }
 
-                # Build Services property. What a mess...but exclude non-open/non-open|filtered ports and blank service info, and exclude servicefp too for the sake of tidiness.
-                if ($_.state.state -like "open*" -and ($_.service.tunnel.length -gt 2 -or $_.service.product.length -gt 2 -or $_.service.proto.length -gt 2)) { $entry.Services += $_.protocol + ":" + $_.portid + ":" + $service + ":" + ($_.service.product + " " + $_.service.version + " " + $_.service.tunnel + " " + $_.service.proto + " " + $_.service.rpcnum).Trim() + " <" + ([Int] $_.service.conf * 10) + "%-confidence>$OutputDelimiter" }
-            }
-            if ($entry.Services -eq $null) { $entry.Services = $null } else { $entry.Services = $entry.Services.Trim() }
-            #Provide a nicer ToString Output
-            $entry.Ports | Add-Member -MemberType ScriptMethod -Name ToString -Force -Value {$this.protocol,$this.port -join ':'}
-        }
+                #Loop through the script elements and create a hashtable for them
+                foreach ($tableitem in $scriptItem.table) {
+                    $scriptTable = @{
+                        PSTypeName = 'PoshNmapScriptTable'
+                    }
+                    foreach ($elemItem in $tableitem.elem) {
+                        $scriptTable[$elemItem.key] = $elemItem.'#text'
+                    }
+                    $scriptResultEntry.table += [PSCustomObject]$scriptTable
+                }
 
-        $entry.OpenPorts = $entry.ports.count
+                $portResult.scriptResult[$scriptItem.id] = [pscustomobject]$scriptResultEntry
+            }
+
+            $entry.Ports.Add($portResult) > $null
+        }
 
         # If there is 100% Accuracy OS, show it
         $CertainOS = $hostnode.os.osmatch | where {$_.accuracy -eq 100} | select -first 1
@@ -96,14 +119,6 @@ The raw formatting is still available as the nmaprun property on the object, to 
         $entry.OSGuesses = $hostnode.os.osmatch
         if (@($entry.OSGuesses).count -lt 1) { $entry.OS = $null }
 
-
-        # Extract script output, first for port scripts, then for host scripts.
-        $entry.Script = $null
-        $hostnode.ports.port | foreach-object {
-            if ($_.script -ne $null) {
-                $entry.Script += "<PortScript id=""" + $_.script.id + """>$OutputDelimiter" + ($_.script.output -replace "`n","$OutputDelimiter") + "$OutputDelimiter</PortScript> $OutputDelimiter $OutputDelimiter"
-            }
-        }
 
         if ($hostnode.hostscript -ne $null) {
             $hostnode.hostscript.script | foreach-object {
