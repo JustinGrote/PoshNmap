@@ -104,7 +104,7 @@ PrivateData = @{
         ProjectUri = 'https://github.com/JustinGrote/PoshNmap'
 
         # A URL to an icon representing this module.
-        IconUri = 'https://github.com/JustinGrote/PoshNmap/blob/master/images/poshnmap.png'
+        IconUri = 'https://raw.githubusercontent.com/JustinGrote/PoshNmap/master/images/poshnmap.png'
 
         # ReleaseNotes of this module
         # ReleaseNotes = ''
