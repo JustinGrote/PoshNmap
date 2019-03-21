@@ -12,15 +12,16 @@ Change what is shown when the supplied object is cast to a string. Use $this to 
     )
 
     process {
-        if (-not $inputObject) {continue}
-        $AddMemberParams = @{
-            InputObject = $inputObject
-            MemberType = 'ScriptMethod'
-            Name = 'ToString'
-            Force = $true
-            Value = $scriptBlock
+        if ($inputObject) {
+            $AddMemberParams = @{
+                InputObject = $inputObject
+                MemberType = 'ScriptMethod'
+                Name = 'ToString'
+                Force = $true
+                Value = $scriptBlock
+            }
+            Add-Member @AddMemberParams
         }
-        Add-Member @AddMemberParams
     }
 
 }
