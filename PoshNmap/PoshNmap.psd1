@@ -95,16 +95,16 @@ PrivateData = @{
     PSData = @{
         PreRelease = 'NotBuiltYet'
         # Tags applied to this module. These help with module discovery in online galleries.
-        # Tags = @()
+        Tags = @('nmap','network','discovery','ping','tcp','udp','snmp','pingsweep')
 
         # A URL to the license for this module.
-        # LicenseUri = ''
+        LicenseUri = 'https://github.com/JustinGrote/PoshNmap/blob/master/LICENSE'
 
         # A URL to the main website for this project.
-        # ProjectUri = ''
+        ProjectUri = 'https://github.com/JustinGrote/PoshNmap'
 
         # A URL to an icon representing this module.
-        # IconUri = ''
+        IconUri = 'https://github.com/JustinGrote/PoshNmap/blob/master/images/poshnmap.png'
 
         # ReleaseNotes of this module
         # ReleaseNotes = ''
