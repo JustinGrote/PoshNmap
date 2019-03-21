@@ -46,11 +46,10 @@ The raw formatting is still available as the nmaprun property on the object, to 
             MAC = $null
             #Arraylist used for performance as this can get large quickly
             Ports = New-Object Collections.ArrayList
-            OpenPorts = $null
+            OpenPorts = $hostnode.ports | measure | % count
         }
         $entry.FQDN = $entry.FQDNs | select -first 1
         $entry.Hostname = $entry.FQDN -replace '^(\w+)\..*$','$1'
-        $entry.OpenPorts = $entry.ports.count
         FormatStringOut -InputObject $entry.Ports {$this.ports | measure | % count}
 
         # Process each of the supplied address properties, extracting by type.
@@ -69,7 +68,7 @@ The raw formatting is still available as the nmaprun property on the object, to 
                 Port=$_.portid
                 Services=$_.service
                 State=$_.state
-                ScriptResult=@{}
+                ScriptResult = @{}
             }
             $portResult | FormatStringOut -scriptblock {$this.protocol,$this.port -join ':'}
             $portResult.state | FormatStringOut -scriptblock {$this.state}
@@ -86,25 +85,27 @@ The raw formatting is still available as the nmaprun property on the object, to 
                     ([Int] $_.service.conf * 10) + "%-confidence>$OutputDelimiter"
             }
 
+            #Port Script Result Processing
             foreach ($scriptItem in $_.script) {
-                $scriptProps = [ordered]@{}
+                $scriptResultEntry = [ordered]@{
+                    PSTypeName = 'PoshNmapScriptResult'
+                    id = $ScriptItem.id
+                    output = $ScriptItem.output
+                    table = [Collections.Arraylist]@()
+                }
 
                 #Loop through the script elements and create a hashtable for them
-                $ScriptItem.elem | foreach {
-                    if ($PSItem -is [String]) {
-                        $scriptProps.result = $PSItem
-                    } else {
-                        $scriptProps.($PSItem.key) = $PSItem.'#text'
+                foreach ($tableitem in $scriptItem.table) {
+                    $scriptTable = @{
+                        PSTypeName = 'PoshNmapScriptTable'
                     }
+                    foreach ($elemItem in $tableitem.elem) {
+                        $scriptTable[$elemItem.key] = $elemItem.'#text'
+                    }
+                    $scriptResultEntry.table += [PSCustomObject]$scriptTable
                 }
 
-                $scriptResult = [ordered]@{
-                    name = $ScriptItem.id
-                    output = $ScriptItem.output
-                    properties = $scriptProps
-                }
-
-                $portResult.ScriptResult.$($scriptResult.name) = [PSCustomObject]$scriptResult
+                $portResult.scriptResult[$scriptItem.id] = [pscustomobject]$scriptResultEntry
             }
 
             $entry.Ports.Add($portResult) > $null

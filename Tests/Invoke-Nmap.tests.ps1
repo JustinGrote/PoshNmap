@@ -28,11 +28,15 @@ import-module $moduleManifestFile
 
 Describe "Invoke-Nmap" {
     $SCRIPT:nmapResult = "Test"
-    $Mocks = (join-path $PSScriptRoot "Mocks")
+    #TODO: Figure out a better way to do this than a global variable, maybe get-variable -scope "up one"
+    $GLOBAL:NmapPesterTestMockDir = (join-path $PSScriptRoot "Mocks")
 
     Mock -Modulename PoshNmap InvokeNmapExe {
-        Get-Content -Raw "$Mocks\asusrouter.nmapxml"
-    }.GetNewClosure() #GetNewClosure "Freezes" the mock. We use this to expand the variable present inside: https://stackoverflow.com/questions/49681015/access-external-variable-from-with-in-mock-script-block-pester
+        Get-Content -Raw "$NmapPesterTestMockDir\asusrouter.nmapxml"
+    }
+    Mock -Modulename PoshNmap InvokeNmapExe -parameterFilter {$argumentlist -match 'snmp-brute'} {
+        Get-Content -Raw "$NmapPesterTestMockDir\snmpresult.nmapxml"
+    }
 
     It "Output: PSCustomObject by default" {
         $SCRIPT:nmapResult = Invoke-Nmap
@@ -45,5 +49,9 @@ Describe "Invoke-Nmap" {
 
     It "Output: XML Data Sanity Check" {
         (Invoke-Nmap -OutFormat PSObject).nmaprun.host.ports.port | where portid -match '445' | % protocol | should -be 'tcp'
+    }
+
+    It "Output: SNMP Table output is correct" {
+        (Invoke-Nmap -snmp).ports.scriptresult.'snmp-brute'.table | where password -match 'public' | Should -Not -BeNullOrEmpty
     }
 }
