@@ -1,5 +1,5 @@
 
-function FormatNmapXmlSummary ($nmapRun) {
+function FormatNmapOutputSummary ($nmapRun) {
 
     #Parse the scanned services list
     foreach ($scanInfoItem in $nmaprun.scaninfo) {

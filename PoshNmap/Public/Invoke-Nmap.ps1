@@ -82,26 +82,18 @@ function Invoke-Nmap {
         $argumentList += '--open'
     }
 
-    $nmapexe = 'nmap'
-
-    if ($OutFormat -eq 'Raw') {
-        InvokeNmapExe $nmapExe $argumentList $computerName -Raw
-        break
-    }
-
     try {
-        [String]$nmapresult = InvokeNmapExe $nmapExe $argumentList $computerName
+        switch -regex ($OutFormat) {
+            'Raw|XML' {
+                if ($Outformat -eq 'XML') {$argumentlist += '-oX','-'}
+                StartNmap $argumentList $computerName -Raw
+                break
+            }
+            default {
+                StartNmap $argumentList $computerName | ConvertFrom-NmapXml -OutFormat $OutFormat
+            }
+        }
     } finally {
         if ($snmp -and (Test-Path $snmpCommunityFile)) {Remove-Item $snmpCommunityFile -Force -ErrorAction SilentlyContinue}
-    }
-
-    if (-not $nmapResult) {throwUser "NMAP did not produce any output. Please review any errors that are present above this warning."}
-    switch ($OutFormat) {
-        'XML' {
-            $nmapResult
-        }
-        default {
-            $nmapResult | ConvertFrom-NmapXML -OutFormat $OutFormat
-        }
     }
 }
