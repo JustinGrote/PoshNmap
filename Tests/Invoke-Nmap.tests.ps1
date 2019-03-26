@@ -30,12 +30,11 @@ Describe "Invoke-Nmap" {
     $SCRIPT:nmapResult = "Test"
     #TODO: Figure out a better way to do this than a global variable, maybe get-variable -scope "up one"
     $GLOBAL:NmapPesterTestMockDir = (join-path $PSScriptRoot "Mocks")
-
     Mock -Modulename PoshNmap InvokeNmapExe {
-        Get-Content -Raw "$NmapPesterTestMockDir\asusrouter.nmapxml"
+        Get-Content "$NmapPesterTestMockDir\asusrouter.nmapxml"
     }
     Mock -Modulename PoshNmap InvokeNmapExe -parameterFilter {$argumentlist -match 'snmp-brute'} {
-        Get-Content -Raw "$NmapPesterTestMockDir\snmpresult.nmapxml"
+        Get-Content "$NmapPesterTestMockDir\snmpresult.nmapxml"
     }
 
     It "Output: PSCustomObject by default" {
@@ -48,7 +47,7 @@ Describe "Invoke-Nmap" {
     }
 
     It "Output: XML Data Sanity Check" {
-        (Invoke-Nmap -OutFormat PSObject).nmaprun.host.ports.port | where portid -match '445' | % protocol | should -be 'tcp'
+        (Invoke-Nmap -OutFormat PSObject).host.ports.port | where portid -match '445' | % protocol | should -be 'tcp'
     }
 
     It "Output: SNMP Table output is correct" {

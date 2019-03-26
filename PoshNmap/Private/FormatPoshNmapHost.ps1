@@ -1,37 +1,16 @@
+using namespace Management.Automation
 Update-TypeData -TypeName PoshNmapHost -DefaultDisplayPropertySet IPv4,FQDN,Status,OpenPorts -Force
-
-function FormatNmapXml {
-<#
-.SYNOPSIS
-Takes the raw formatting from ConvertFrom-NmapXML and makes a useful Powershell Object out of the output. Meant to be called from ConvertFrom-NmapXml
-.INPUTS
-[Hashtable]
-.OUTPUTS
-[PoshNmapResult]
-.NOTES
-The raw formatting is still available as the nmaprun property on the object, to maintain compatibility
-#>
-
+function FormatPoshNmapHost {
     [CmdletBinding()]
     param (
-        #Nmaprun output from ConvertFrom-NmapXml. We use hashtable because it's the easiest to manipulate quickly
-        [Parameter(ValueFromPipeline)]$InputNmapXml,
-        #Return a summary of the scan rather than individual hosts
-        [Switch]$Summary
+        [Parameter(ValueFromPipeline)][pscustomobject]$PoshNmapHost
     )
 
-    if (-not $inputNmapXml.nmaprun) {throwUser "This is not a valid Hashtable output from Convert-NmapXML"}
+    process {
+        $hostnode = $PoshNmapHost
 
-    $nmaprun = $inputNmapXml.nmaprun
-
-    #Only return a summary if that was requested
-    if ($summary) {return (FormatNmapXmlSummary $nmapRun)}
-
-    #Generate nicer host entries
-    $i=1
-    $itotal = $nmaprun.host | measure | % count
-    foreach ($hostnode in $nmaprun.host) {
-        write-progress -Activity "Parsing NMAP Result" -Status "Processing Scan Entries" -CurrentOperation "Processing $i of $itotal" -PercentComplete (($i/$itotal)*100)
+        #Deep copy the nmap result so when we output it as the nmapresult property, it is "unchanged"
+        $nmapResult = [PSSerializer]::Serialize($hostnode, [int32]::MaxValue)
 
         # Init variables, with $entry being the custom object for each <host>.
         $service = $null
@@ -46,7 +25,7 @@ The raw formatting is still available as the nmaprun property on the object, to 
             MAC = $null
             #Arraylist used for performance as this can get large quickly
             Ports = New-Object Collections.ArrayList
-            OpenPorts = $hostnode.ports | measure | % count
+            OpenPorts = $hostnode.ports.port | measure | % count
         }
         $entry.FQDN = $entry.FQDNs | select -first 1
         $entry.Hostname = $entry.FQDN -replace '^(\w+)\..*$','$1'
@@ -72,12 +51,12 @@ The raw formatting is still available as the nmaprun property on the object, to 
             }
             $portResult | FormatStringOut -scriptblock {$this.protocol,$this.port -join ':'}
             $portResult.State | FormatStringOut -scriptblock {$this.state}
-            $portResult.Services | FormatStringOut -scriptblock {($this.name,$this.product -join ':') + " ($($this.conf * 10)%)"}
+            $portResult.Services | FormatStringOut -scriptblock {($this.name,$this.product -join ':') + " ($([int]($this.conf) * 10)%)"}
 
             #TODO: Refactor this now that I'm better at Powershell :)
             # Build Services property. What a mess...but exclude non-open/non-open|filtered ports and blank service info, and exclude servicefp too for the sake of tidiness.
             if ($_.state.state -like "open*" -and ($_.service.tunnel.length -gt 2 -or $_.service.product.length -gt 2 -or $_.service.proto.length -gt 2)) {
-
+                $OutputDelimiter = ', '
                 $entry.Services += ($_.protocol,$_.portid,$service -join ':')+
                     ':'+
                     ($_.service.product,$_.service.version,$_.service.tunnel,$_.service.proto,$_.service.rpcnum -join " ").Trim() +
@@ -107,7 +86,6 @@ The raw formatting is still available as the nmaprun property on the object, to 
 
                 $portResult.scriptResult[$scriptItem.id] = [pscustomobject]$scriptResultEntry
             }
-
             $entry.Ports.Add($portResult) > $null
         }
 
@@ -119,16 +97,13 @@ The raw formatting is still available as the nmaprun property on the object, to 
         $entry.OSGuesses = $hostnode.os.osmatch
         if (@($entry.OSGuesses).count -lt 1) { $entry.OS = $null }
 
-
         if ($hostnode.hostscript -ne $null) {
             $hostnode.hostscript.script | foreach-object {
                 $entry.Script += '<HostScript id="' + $_.id + '">' + $OutputDelimiter + ($_.output.replace("`n","$OutputDelimiter")) + "$OutputDelimiter</HostScript> $OutputDelimiter $OutputDelimiter"
             }
         }
-        $i++  #Progress counter...
 
-        #Add raw host reference
-        $entry.nmapResult = $hostnode
+        $entry.NmapResult = [PSSerializer]::Deserialize($nmapResult)
 
         [PSCustomObject]$entry
     }
