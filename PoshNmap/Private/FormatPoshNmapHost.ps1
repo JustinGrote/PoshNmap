@@ -1,5 +1,4 @@
 using namespace Management.Automation
-Update-TypeData -TypeName PoshNmapHost -DefaultDisplayPropertySet IPv4,FQDN,Status,OpenPorts -Force
 function FormatPoshNmapHost {
     [CmdletBinding()]
     param (
@@ -49,7 +48,7 @@ function FormatPoshNmapHost {
                 State=$_.state
                 ScriptResult = @{}
             }
-            $portResult | FormatStringOut -scriptblock {$this.protocol,$this.port -join ':'}
+            $portResult | FormatStringOut -scriptblock {$this.services.name -join ','}
             $portResult.State | FormatStringOut -scriptblock {$this.state}
             $portResult.Services | FormatStringOut -scriptblock {($this.name,$this.product -join ':') + " ($([int]($this.conf) * 10)%)"}
 
