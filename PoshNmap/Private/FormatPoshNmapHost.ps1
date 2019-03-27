@@ -51,17 +51,6 @@ function FormatPoshNmapHost {
             $portResult.State | FormatStringOut -scriptblock {$this.state}
             $portResult.Services | FormatStringOut -scriptblock {($this.name,$this.product -join ':') + " ($([int]($this.conf) * 10)%)"}
 
-            #TODO: Refactor this now that I'm better at Powershell :)
-            # Build Services property. What a mess...but exclude non-open/non-open|filtered ports and blank service info, and exclude servicefp too for the sake of tidiness.
-            if ($_.state.state -like "open*" -and ($_.service.tunnel.length -gt 2 -or $_.service.product.length -gt 2 -or $_.service.proto.length -gt 2)) {
-                $OutputDelimiter = ', '
-                $entry.Services += ($_.protocol,$_.portid,$service -join ':')+
-                    ':'+
-                    ($_.service.product,$_.service.version,$_.service.tunnel,$_.service.proto,$_.service.rpcnum -join " ").Trim() +
-                    " <" +
-                    ([Int] $_.service.conf * 10) + "%-confidence>$OutputDelimiter"
-            }
-
             #Port Script Result Processing
             foreach ($scriptItem in $_.script) {
                 $scriptResultEntry = [ordered]@{
@@ -95,6 +84,9 @@ function FormatPoshNmapHost {
         $entry.OSGuesses = $hostnode.os.osmatch
         if (@($entry.OSGuesses).count -lt 1) { $entry.OS = $null }
 
+        $entry.Inventory = $hostnode.ports.port.service.cpe | select -unique | ConvertFromCpe
+
+        #TODO: Refactor this
         if ($hostnode.hostscript -ne $null) {
             $hostnode.hostscript.script | foreach-object {
                 $entry.Script += '<HostScript id="' + $_.id + '">' + $OutputDelimiter + ($_.output.replace("`n","$OutputDelimiter")) + "$OutputDelimiter</HostScript> $OutputDelimiter $OutputDelimiter"
