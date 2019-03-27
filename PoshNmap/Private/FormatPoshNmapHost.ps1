@@ -18,7 +18,6 @@ function FormatPoshNmapHost {
             Hostname = $null
             Status = ($hostnode.status.state.Trim() | where length -ge 2)
             FQDNs = $hostnode.hostnames.hostname.name | select -Unique
-            FDQN = $null
             IPv4 = $null
             IPv6 = $null
             MAC = $null
@@ -26,7 +25,7 @@ function FormatPoshNmapHost {
             Ports = New-Object Collections.ArrayList
             OpenPorts = $hostnode.ports.port | measure | % count
         }
-        $entry.FQDN = $entry.FQDNs | select -first 1
+        $entry.FQDN = if ($hostnode.hostnames.hostname | where type -eq 'user') {$hostnode.hostnames.hostname | where type -eq 'user' | % name} else {$entry.FQDNs | select -first 1}
         $entry.Hostname = $entry.FQDN -replace '^(\w+)\..*$','$1'
         FormatStringOut -InputObject $entry.Ports {$this.ports | measure | % count}
 
