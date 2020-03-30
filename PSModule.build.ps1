@@ -46,9 +46,9 @@ Enter-Build {
     ###Detect certain environments
 
     #Appveyor
-    if ($ENV:APPVEYOR) {$IsAppVeyor = $true}
+    if ($ENV:APPVEYOR) { $IsAppVeyor = $true }
     #Azure DevOps
-    if ($ENV:SYSTEM_COLLECTIONID) {$IsAzureDevOps = $true}
+    if ($ENV:SYSTEM_COLLECTIONID) { $IsAzureDevOps = $true }
 
     #Detect if we are in a continuous integration environment (Appveyor, etc.) or otherwise running noninteractively
     if ($ENV:CI -or $CI -or $IsAppVeyor -or $IsAzureDevOps -or ([Environment]::GetCommandLineArgs() -like '-noni*')) {
@@ -59,9 +59,9 @@ Enter-Build {
         $ProgressPreference = "SilentlyContinue"
     }
 
-#region Bootstrap
+    #region Bootstrap
     $bootstrapCompleteFileName = (Split-Path $buildroot -leaf) + '.buildbootstrap.complete'
-    $bootstrapCompleteFilePath = join-path ([IO.Path]::GetTempPath()) $bootstrapCompleteFileName
+    $bootstrapCompleteFilePath = Join-Path ([IO.Path]::GetTempPath()) $bootstrapCompleteFileName
     if ((Test-Path $bootstrapCompleteFilePath) -and (-not $forcebootstrap)) {
         write-build Green "Build Initialization - 'Bootstrap Complete' file detected at $bootstrapCompleteFilePath, skipping bootstrap and dependencies"
         $SkipBootStrap = $true
@@ -69,36 +69,35 @@ Enter-Build {
 
     if (-not $SkipBootStrap) {
         #Register Nuget if required
-        if (!(get-packageprovider "Nuget" -ForceBootstrap -ErrorAction silentlycontinue)) {
-            write-verbose "Nuget Provider Not found. Fetching..."
-            Install-PackageProvider Nuget -forcebootstrap -scope currentuser | out-string | write-verbose
-            write-verbose "Installed Nuget Provider Info"
-            Get-PackageProvider Nuget | format-list | out-string | write-verbose
+        if (!(Get-PackageProvider "Nuget" -ForceBootstrap -ErrorAction silentlycontinue)) {
+            Write-Verbose "Nuget Provider Not found. Fetching..."
+            Install-PackageProvider Nuget -forcebootstrap -scope currentuser | Out-String | Write-Verbose
+            Write-Verbose "Installed Nuget Provider Info"
+            Get-PackageProvider Nuget | Format-List | Out-String | Write-Verbose
         }
 
         #If nuget is pointed to the v3 URI or doesn't exist, downgrade it to v2
         $NugetOrgSource = Get-PackageSource nuget.org -erroraction SilentlyContinue
         $IsNugetOrgV2Source = $NugetOrgSource.location -match 'v2$'
         if (-not $IsNugetOrgV2Source) {
-            write-verbose "Detected nuget.org not using v2 api, downgrading to v2 Nuget API for PowerShellGet compatability"
+            Write-Verbose "Detected nuget.org not using v2 api, downgrading to v2 Nuget API for PowerShellGet compatability"
 
             #Next command will detect this was removed and add this back
-            UnRegister-PackageSource -Name nuget.org -ErrorAction SilentlyContinue
+            Unregister-PackageSource -Name nuget.org -ErrorAction SilentlyContinue
 
             #Add the nuget repository so we can download things like GitVersion
             # TODO: Make this optional code when running interactively
             if (!(Get-PackageSource "nuget.org" -erroraction silentlycontinue)) {
-                write-verbose "Registering nuget.org as package source"
-                Register-PackageSource -provider NuGet -name nuget.org -location http://www.nuget.org/api/v2 -Trusted  | out-string | write-verbose
-            }
-            else {
-                $nugetOrgPackageSource = Set-PackageSource -name 'nuget.org' -Trusted
+                Write-Verbose "Registering nuget.org as package source"
+                Register-PackageSource -provider NuGet -name nuget.org -location http://www.nuget.org/api/v2 -Trusted | Out-String | Write-Verbose
+            } else {
+                Set-PackageSource -name 'nuget.org' -Trusted >$null
             }
         }
 
         if (-not (Get-Command -Name 'PSDepend\Invoke-PSDepend' -ErrorAction SilentlyContinue)) {
             #Force required by Azure Devops Pipelines, confirm false not good enough
-            Install-module -Name 'PSDepend' -Scope CurrentUser -Repository PSGallery -ErrorAction Stop -Force
+            Install-Module -Name 'PSDepend' -Scope CurrentUser -Repository PSGallery -ErrorAction Stop -Force
         }
 
         #Install dependencies defined in Requirements.psd1
@@ -109,15 +108,15 @@ Enter-Build {
         "Delete this file or use -ForceBootstrap parameter to enable bootstrap again." > $bootstrapCompleteFilePath
     }
 
-#endregion Bootstrap
+    #endregion Bootstrap
 
     #Configure some easy to use build environment variables
     Set-BuildEnvironment -BuildOutput $BuildOutputPath -Force
 
-    $BuildProjectPath = join-path $env:BHBuildOutput $env:BHProjectName
+    $BuildProjectPath = Join-Path $env:BHBuildOutput $env:BHProjectName
 
     #Detect if this is a Metabuild of the PowerCD Tools
-    if ($env:BHProjectName -eq $MetaBuild) {$IsMetaBuild = $true} else {$IsMetaBuild = $false}
+    #if ($env:BHProjectName -eq $MetaBuild) { $IsMetaBuild = $true } else { $IsMetaBuild = $false }
 
 
 
@@ -140,7 +139,7 @@ Enter-Build {
     Write-Build Green "Build Initialization - Current Branch Name: $BranchName"
     Write-Build Green "Build Initialization - Project Build Path: $BuildProjectPath"
 
-    $PassThruParams = @{}
+    $PassThruParams = @{ }
     if ($CI -and ($BranchName -ne 'master')) {
         write-build Green "Build Initialization - Not in Master branch, Verbose Build Logging Enabled"
         $SCRIPT:VerbosePreference = "Continue"
@@ -153,10 +152,10 @@ Enter-Build {
     }
     function Write-VerboseHeader ([String]$Message) {
         #Simple function to add lines around a header
-        write-verbose ""
-        write-verbose $lines
-        write-verbose $Message
-        write-verbose $lines
+        Write-Verbose ""
+        Write-Verbose $lines
+        Write-Verbose $Message
+        Write-Verbose $lines
     }
 
     #Move to the Project Directory if we aren't there already. This should never be necessary, just a sanity check
@@ -166,23 +165,23 @@ Enter-Build {
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
     write-verboseheader "Build Environment Prepared! Environment Information:"
-    Get-BuildEnvironment | format-list | out-string | write-verbose
+    Get-BuildEnvironment | Format-List | Out-String | Write-Verbose
     if ($ShowEnvironmentVariables) {
         write-verboseheader "Current Environment Variables"
-        get-childitem env: | out-string | write-verbose
+        Get-ChildItem env: | Out-String | Write-Verbose
 
         write-verboseheader "Powershell Variables"
-        Get-Variable | select-object name, value, visibility | format-table -autosize | out-string | write-verbose
+        Get-Variable | Select-Object name, value, visibility | Format-Table -autosize | Out-String | Write-Verbose
     }
 }
 
 task Clean {
     #Reset the BuildOutput Directory
-    if (test-path $buildProjectPath) {
+    if (Test-Path $buildProjectPath) {
         Write-Verbose "Removing and resetting Build Output Path: $buildProjectPath"
-        remove-item (join-path $buildOutputPath '*') -Recurse
+        Remove-Item (Join-Path $buildOutputPath '*') -Recurse
     }
-    New-Item -Type Directory $BuildProjectPath @PassThruParams | out-null
+    New-Item -Type Directory $BuildProjectPath @PassThruParams | Out-Null
     #Unmount any modules named the same as our module
     Remove-Module $env:BHProjectName -erroraction silentlycontinue
 }
@@ -192,32 +191,32 @@ task Version {
     $GitVersionPackageName = 'gitversion.commandline'
     $GitVersionPackageMinVersion = '4.0.0'
     $PackageParams = @{
-        Name = $GitVersionPackageName
+        Name           = $GitVersionPackageName
         MinimumVersion = $GitVersionPackageMinVersion
     }
 
     if ($IsAppVeyor -and $IsLinux) {
         #Appveyor Ubuntu can't run the EXE for some dumb reason as of 2018/11/27, fetch it as a global tool instead
         #Fetch Gitversion as a .net Global Tool
-        $dotnetCMD = (get-command dotnet -CommandType Application -errorAction stop | select -first 1).source
-        $gitversionEXE = (get-command dotnet-gitversion -CommandType Application -errorAction silentlycontinue | select -first 1).source
+        $dotnetCMD = (Get-Command dotnet -CommandType Application -errorAction stop | Select-Object -first 1).source
+        $gitversionEXE = (Get-Command dotnet-gitversion -CommandType Application -errorAction silentlycontinue | Select-Object -first 1).source
         if ($dotnetCMD -and -not $gitversionEXE) {
             write-build Green "Task $task - Installing dotnet-gitversion"
             #Skip First Run Setup (takes too long for no benefit)
             $ENV:DOTNET_SKIP_FIRST_TIME_EXPERIENCE = $true
             Invoke-Expression "$dotnetCMD tool install --global GitVersion.Tool --version 4.0.1-beta1-47"
         }
-        $gitversionEXE = (get-command dotnet-gitversion -CommandType Application -errorAction stop | select -first 1).source
+        $gitversionEXE = (Get-Command dotnet-gitversion -CommandType Application -errorAction stop | Select-Object -first 1).source
     } else {
         #Fetch Gitversion as a NuGet Package
         $GitVersionPackage = Get-Package @PackageParams -erroraction SilentlyContinue
         if (!($GitVersionPackage)) {
-            write-verbose "Package $GitVersionPackageName Not Found Locally, Installing..."
+            Write-Verbose "Package $GitVersionPackageName Not Found Locally, Installing..."
 
             #Fetch GitVersion
             $GitVersionPackage = Install-Package @PackageParams -scope currentuser -source 'nuget.org' -force -erroraction stop
         }
-        $GitVersionEXE = [Path]::Combine(((Get-Package $GitVersionPackageName).source | split-path -Parent),'tools','GitVersion.exe')
+        $GitVersionEXE = [Path]::Combine(((Get-Package $GitVersionPackageName).source | Split-Path -Parent), 'tools', 'GitVersion.exe')
     }
 
     #If this commit has a tag on it, temporarily remove it so GitVersion calculates properly
@@ -231,12 +230,12 @@ task Version {
 
     #Strip prerelease tags, GitVersion can't handle them with Mainline deployment with version 4.0
     #TODO: Restore these for local repositories, otherwise they just come down with git pulls
-    git tag --list v*-* | % {git tag -d $PSItem}
+    git tag --list v*-* | ForEach-Object { git tag -d $PSItem }
 
 
     try {
         #Calculate the GitVersion
-        write-verbose "Executing GitVersion to determine version info"
+        Write-Verbose "Executing GitVersion to determine version info"
 
         if ($isLinux -and -not $isAppveyor) {
             #TODO: Find a more platform-independent way of changing GitVersion executable permissions (Mono.Posix library maybe?)
@@ -246,11 +245,11 @@ task Version {
         $GitVersionOutput = Invoke-Expression "$GitVersionEXE /nofetch"
 
         #Since GitVersion doesn't return error exit codes, we look for error text in the output in the output
-        if ($GitVersionOutput -match '^[ERROR|INFO] \[') {throw "An error occured when running GitVersion.exe in $buildRoot"}
-        $SCRIPT:GitVersionInfo = $GitVersionOutput | ConvertFrom-JSON -ErrorAction stop
+        if ($GitVersionOutput -match '^[ERROR|INFO] \[') { throw "An error occured when running GitVersion.exe in $buildRoot" }
+        $SCRIPT:GitVersionInfo = $GitVersionOutput | ConvertFrom-Json -ErrorAction stop
     } catch {
         write-build Red $GitVersionOutput
-        write-error "There was an error when running GitVersion.exe $buildRoot`: $PSItem. The output of the command (if any) is above..."
+        Write-Error "There was an error when running GitVersion.exe $buildRoot`: $PSItem. The output of the command (if any) is above..."
     } finally {
         #Restore the tag if it was present
         if ($currentTag) {
@@ -260,10 +259,10 @@ task Version {
     }
 
 
-    if (-not $GitVersionOutput) {throw "GitVersion returned no output. Are you sure it ran successfully?"}
+    if (-not $GitVersionOutput) { throw "GitVersion returned no output. Are you sure it ran successfully?" }
     if ($PassThruParams.Verbose) {
         write-verboseheader "GitVersion Results"
-        $GitVersionInfo | format-list | out-string | write-verbose
+        $GitVersionInfo | Format-List | Out-String | Write-Verbose
     }
 
     $SCRIPT:ProjectBuildVersion = [Version]$GitVersionInfo.MajorMinorPatch
@@ -294,8 +293,8 @@ task Version {
 
     #Reset the build dir to the versioned release directory. TODO: This should probably be its own task.
     $SCRIPT:BuildReleasePath = Join-Path $BuildProjectPath $ProjectBuildVersion
-    if (-not (Test-Path -pathtype Container $BuildReleasePath)) {New-Item -type Directory $BuildReleasePath | out-null}
-    $SCRIPT:BuildReleaseManifest = Join-Path $BuildReleasePath (split-path $env:BHPSModuleManifest -leaf)
+    if (-not (Test-Path -pathtype Container $BuildReleasePath)) { New-Item -type Directory $BuildReleasePath | Out-Null }
+    $SCRIPT:BuildReleaseManifest = Join-Path $BuildReleasePath (Split-Path $env:BHPSModuleManifest -leaf)
     write-build Green "Task $($task.name) -  Using Release Path: $BuildReleasePath"
 }
 
@@ -306,7 +305,7 @@ task CopyFilesToBuildDir {
     Set-Location $buildRoot
 
     #Detect the .psm1 file and copy all files to the root directory, excluding build files unless this is PowerCD
-    $PSModuleManifestDirectory = (split-path $env:BHPSModuleManifest -parent)
+    $PSModuleManifestDirectory = (Split-Path $env:BHPSModuleManifest -parent)
     if ($PSModuleManifestDirectory -eq $buildRoot) {
         <# TODO: Root-folder level module with buildFilesToExclude
         copy-item -Recurse -Path $buildRoot\* -Exclude $BuildFilesToExclude -Destination $BuildReleasePath @PassThruParams
@@ -319,18 +318,18 @@ task CopyFilesToBuildDir {
         #If this is a meta-build of PowerCD, include certain additional files that are normally excluded.
         #This is so we can use the same build file for both PowerCD and templates deployed from PowerCD.
         #TODO: Put this in its own build script so that this code doesn't carry over to the template
-        $PowerCDFilesToCopy = Get-Childitem $buildRoot -Force -Recurse |
-            where fullname -notlike "$PSModuleManifestDirectory*" |
-            where fullname -notlike "$env:BHBuildOutput*" |
-            where fullname -notlike (join-path $buildRoot 'LICENSE') |
-            where fullname -notlike (join-path $buildRoot 'README.MD') |
-            where fullname -notlike (join-path $buildRoot '.git') |
-            where fullname -notlike ([Path]::Combine($buildRoot,'.git','*')) |
-            where fullname -notlike (join-path $buildroot "Tests\$($env:BHProjectName)*.Tests.ps1")
+        $PowerCDFilesToCopy = Get-ChildItem $buildRoot -Force -Recurse |
+            Where-Object fullname -notlike "$PSModuleManifestDirectory*" |
+            Where-Object fullname -notlike "$env:BHBuildOutput*" |
+            Where-Object fullname -notlike (Join-Path $buildRoot 'LICENSE') |
+            Where-Object fullname -notlike (Join-Path $buildRoot 'README.MD') |
+            Where-Object fullname -notlike (Join-Path $buildRoot '.git') |
+            Where-Object fullname -notlike ([Path]::Combine($buildRoot, '.git', '*')) |
+            Where-Object fullname -notlike (Join-Path $buildroot "Tests\$($env:BHProjectName)*.Tests.ps1")
 
         #Copy-Item doesn't preserve paths with piped files even with -Container parameter, this is a workaround
-        $PowerCDFilesToCopy | Resolve-Path -Relative | foreach {
-            $RelativeDestination = [Path]::Combine($BuildReleasePath,'PlasterTemplates\Default',$PSItem)
+        $PowerCDFilesToCopy | Resolve-Path -Relative | ForEach-Object {
+            $RelativeDestination = [Path]::Combine($BuildReleasePath, 'PlasterTemplates\Default', $PSItem)
             Copy-Item $PSItem -Destination $RelativeDestination -Force
         }
 
@@ -339,17 +338,17 @@ task CopyFilesToBuildDir {
 }
 
 #Update the Metadata of the module with the latest version information.
-task UpdateMetadata Version,CopyFilesToBuildDir,{
+task UpdateMetadata Version, CopyFilesToBuildDir, {
     #TODO: Split manifest and plaster versioning into discrete tasks
-    [Version]$UpdateModuleManifestVersion = (get-command update-metadata -erroractionsilentlycontinue).version
-    if ($UpdateModuleManifestVersion -lt '1.6') {throw "PowershellGet module must be version 1.6 or higher to support prerelease versioning"}
+    [Version]$UpdateModuleManifestVersion = (Get-Command update-metadata -erroractionsilentlycontinue).version
+    if ($UpdateModuleManifestVersion -lt '1.6') { throw "PowershellGet module must be version 1.6 or higher to support prerelease versioning" }
 
     # Set the Module Version to the calculated Project Build version. Cannot use update-modulemanifest for this because it will complain the version isn't correct (ironic)
     Update-Metadata -Path $buildReleaseManifest -PropertyName ModuleVersion -Value $ProjectBuildVersion
 
     #Update Plaster Manifest Version if this is a PowerCD Build
     if ($isMetaBuild) {
-        $PlasterManifestPath = join-path $buildReleasePath "PlasterTemplates\Default\plasterManifest.xml"
+        $PlasterManifestPath = Join-Path $buildReleasePath "PlasterTemplates\Default\plasterManifest.xml"
         $PlasterManifest = [xml](Get-Content -raw $PlasterManifestPath)
         $PlasterManifest.plasterManifest.metadata.version = $ProjectBuildVersion.tostring()
         $PlasterManifest.save($PlasterManifestPath)
@@ -357,9 +356,9 @@ task UpdateMetadata Version,CopyFilesToBuildDir,{
         #Update-ModuleManifest corrupts the Plaster Extension, doing this instead.
         Update-Metadata -Path $buildReleaseManifest -PropertyName Extensions -Value @(
             @{
-                Module = "Plaster"
+                Module         = "Plaster"
                 MinimumVersion = "1.0.1"
-                Details = @{
+                Details        = @{
                     TemplatePaths = "PlasterTemplates\Default"
                 }
             }
@@ -367,9 +366,9 @@ task UpdateMetadata Version,CopyFilesToBuildDir,{
     }
 
     # This is needed for proper discovery by get-command and Powershell Gallery
-    $moduleFunctionsToExport = (Get-ChildItem (join-path "$BuildReleasePath" "Public") -Filter *.ps1).basename
+    $moduleFunctionsToExport = (Get-ChildItem (Join-Path "$BuildReleasePath" "Public") -Filter *.ps1).basename
     if (-not $moduleFunctionsToExport) {
-        write-warning "No functions found in the powershell module. Did you define any yet? Create a new one called something like New-MyFunction.ps1 in the Public folder"
+        Write-Warning "No functions found in the powershell module. Did you define any yet? Create a new one called something like New-MyFunction.ps1 in the Public folder"
     } else {
 
         Update-Metadata -Path $BuildReleaseManifest -PropertyName FunctionsToExport -Value $moduleFunctionsToExport
@@ -395,7 +394,7 @@ task UpdateMetadata Version,CopyFilesToBuildDir,{
         if (-not (git tag -l "v$ProjectVersion")) {
             git tag "v$ProjectVersion" -a -m "Automatic GitVersion Release Tag Generated by Invoke-Build"
         } else {
-            write-warning "Tag $ProjectVersion already exists. This is normal if you are running multiple builds on the same commit, otherwise this should not happen."
+            Write-Warning "Tag $ProjectVersion already exists. This is normal if you are running multiple builds on the same commit, otherwise this should not happen."
         }
     }
 
@@ -408,7 +407,7 @@ task UpdateMetadata Version,CopyFilesToBuildDir,{
 task Pester {
     #Find the latest module
     try {
-        $moduleManifestPath = Get-ChildItem $BuildRoot -File -Recurse *.psd1 -ErrorAction Stop | where name -notmatch '(depend|requirements)\.psd1$'| Select-Object -last 1
+        $moduleManifestPath = Get-ChildItem $BuildRoot -File -Recurse *.psd1 -ErrorAction Stop | Where-Object name -notmatch '(depend|requirements)\.psd1$' | Select-Object -last 1
         $moduleDirectory = Split-Path $moduleManifestPath.fullname
     } catch {
         throw "Did not detect any module manifests in $BuildProjectPath. Did you run 'Invoke-Build Build' first?"
@@ -416,20 +415,20 @@ task Pester {
 
     write-build Green "Task $($task.name) - Testing $moduleDirectory"
 
-    $PesterResultFile = join-path $env:BHBuildOutput "$env:BHProjectName-TestResults_PS$PSVersion`_$TimeStamp.xml"
+    $PesterResultFile = Join-Path $env:BHBuildOutput "$env:BHProjectName-TestResults_PS$PSVersion`_$TimeStamp.xml"
 
     $PesterParams = @{
-        Script = @{Path = "Tests"; Parameters = @{ModulePath = $moduleDirectory}}
-        OutputFile = $PesterResultFile
+        Script       = @{Path = "Tests"; Parameters = @{ModulePath = $moduleDirectory } }
+        OutputFile   = $PesterResultFile
         OutputFormat = "NunitXML"
-        PassThru = $true
-        OutVariable = 'TestResults'
+        PassThru     = $true
+        OutVariable  = 'TestResults'
     }
 
     #If we are in vscode, add the VSCodeMarkers
     if ($host.name -match 'Visual Studio Code') {
-        write-verbose "Detected Visual Studio Code, adding test markers"
-        $PesterParams.PesterOption = (new-pesteroption -IncludeVSCodeMarker)
+        Write-Verbose "Detected Visual Studio Code, adding test markers"
+        $PesterParams.PesterOption = (New-PesterOption -IncludeVSCodeMarker)
     }
 
     Invoke-Pester @PesterParams | Out-Null
@@ -437,7 +436,7 @@ task Pester {
     # In Appveyor? Upload our test results!
     If ($ENV:APPVEYOR) {
         $UploadURL = "https://ci.appveyor.com/api/testresults/nunit/$($env:APPVEYOR_JOB_ID)"
-        write-verbose "Detected we are running in AppVeyor! Uploading Pester Results to $UploadURL"
+        Write-Verbose "Detected we are running in AppVeyor! Uploading Pester Results to $UploadURL"
         (New-Object 'System.Net.WebClient').UploadFile(
             "https://ci.appveyor.com/api/testresults/nunit/$($env:APPVEYOR_JOB_ID)",
             $PesterResultFile )
@@ -457,70 +456,69 @@ task Pester {
 }
 
 task PackageZip {
-    $ZipArchivePath = (join-path $env:BHBuildOutput "$env:BHProjectName-$ProjectVersion.zip")
+    $ZipArchivePath = (Join-Path $env:BHBuildOutput "$env:BHProjectName-$ProjectVersion.zip")
     write-build Green "Task $($task.name) -  Writing Finished Module to $ZipArchivePath"
     #Package the Powershell Module
     Compress-Archive -Path $BuildProjectPath -DestinationPath $ZipArchivePath -Force @PassThruParams
 }
 
-task PreDeploymentChecks Test,{
+task PreDeploymentChecks Test, {
     #Do not proceed if the most recent Pester test is not passing.
     $CurrentErrorActionPreference = $ErrorActionPreference
     try {
         $ErrorActionPreference = "Stop"
-        $MostRecentPesterTestResult = [xml]((Get-Content -raw (get-item "$env:BHBuildOutput/*-TestResults*.xml" | Sort-Object lastwritetime | Select-Object -last 1)))
+        $MostRecentPesterTestResult = [xml]((Get-Content -raw (Get-Item "$env:BHBuildOutput/*-TestResults*.xml" | Sort-Object lastwritetime | Select-Object -last 1)))
         $MostRecentPesterTestResult = $MostRecentPesterTestResult."test-results"
         if (
             $MostRecentPesterTestResult -isnot [System.XML.XMLElement] -or
             $MostRecentPesterTestResult.errors -gt 0 -or
             $MostRecentPesterTestResult.failures -gt 0
-        ) {throw "Fail!"}
+        ) { throw "Fail!" }
     } catch {
         throw "Pester tests failed, or unable to detect a clean passing Pester Test nunit xml file in the $BuildOutput directory. Refusing to publish/deploy until all tests pass."
-    }
-    finally {
+    } finally {
         $ErrorActionPreference = $CurrentErrorActionPreference
     }
 
     if (($BranchName -match '^(master$|vNext$|releases?[-/])') -or $ForcePublish) {
-        if (-not (Get-Item $BuildReleasePath/*.psd1 -erroraction silentlycontinue)) {throw "No Powershell Module Found in $BuildReleasePath. Skipping deployment. Did you remember to build it first with {Invoke-Build Build}?"}
+        if (-not (Get-Item $BuildReleasePath/*.psd1 -erroraction silentlycontinue)) { throw "No Powershell Module Found in $BuildReleasePath. Skipping deployment. Did you remember to build it first with {Invoke-Build Build}?" }
     } else {
         write-build Magenta "Task $($task.name) - We are not in master or release branch, skipping publish. If you wish to publish anyways such as for testing, run {InvokeBuild Publish -ForcePublish:$true}"
-        $script:SkipPublish=$true
+        $script:SkipPublish = $true
         continue
     }
 
     #If this branch is on the same commit as master but isn't master, don't deploy, since master already exists.
     if ($branchname -ne 'master' -and (git rev-parse origin/master) -and (git rev-parse $BranchName) -eq (git rev-parse origin/master)) {
         write-build Magenta "Task $($task.name) - This branch is on the same commit as the origin master. Skipping Publish as you should publish from master instead. This is normal if you just merged and reset vNext. Please commit a change and rebuild."
-        $script:SkipPublish=$true
+        $script:SkipPublish = $true
         continue
     }
 }
 
-task PublishGitHubRelease -if {-not $SkipPublish} Package,Test,{
+task PublishGitHubRelease -if { -not $SkipPublish } Package, Test, {
     #Determine if GitHub is in use
     [uri]$gitOriginURI = & git remote get-url --push origin
 
     if ($gitOriginURI.host -eq 'github.com') {
         if (-not $GitHubUserName) {
-            $GitHubUserName = $gitOriginURI.Segments[1] -replace '/$',''
+            $GitHubUserName = $gitOriginURI.Segments[1] -replace '/$', ''
         }
-        [uri]$GitHubPublishURI = $gitOriginURI -replace '^https://github.com/(\w+)/(\w+).git','https://api.github.com/repos/$1/$2/releases'
+        [uri]$GitHubPublishURI = $gitOriginURI -replace '^https://github.com/(\w+)/(\w+).git', 'https://api.github.com/repos/$1/$2/releases'
         write-build Green "Using GitHub Releases URL: $GitHubPublishURI with user $GitHubUserName"
     } else {
         write-build DarkYellow "This project did not detect a GitHub repository as its git origin, skipping GitHub Release preparation"
         $SkipGitHubRelease = $true
     }
 
-    if ($SkipPublish) {[switch]$SkipGitHubRelease = $true}
+    if ($SkipPublish) { [switch]$SkipGitHubRelease = $true }
     if ($AppVeyor -and -not $GitHubAPIKey) {
         write-build DarkYellow "Task $($task.name) - Couldn't find GitHubAPIKey in the Appveyor secure environment variables. Did you save your Github API key as an Appveyor Secure Variable? https://docs.microsoft.com/en-us/powershell/gallery/psgallery/creating-and-publishing-an-item and https://github.com/settings/tokens"
         $SkipGitHubRelease = $true
     }
 
     if (-not $GitHubAPIKey) {
-        if (get-command 'get-storedcredential' -erroraction SilentlyContinue) {
+        if (Get-Command 'get-storedcredential' -erroraction SilentlyContinue) {
             write-build Green "Detected Github API key in Windows Credential Manager, using that for GitHub Release"
             $WinCredMgrGitAPIKey = get-storedcredential -target 'LegacyGeneric:target=git:https://github.com' -erroraction silentlycontinue
             if ($WinCredMgrGitAPIKey) {
@@ -548,12 +546,12 @@ task PublishGitHubRelease -if {-not $SkipPublish} Package,Test,{
     #Create the release
     #Currently all releases are draft on publish and must be manually made public on the website or via the API
     $releaseData = @{
-        tag_name = [string]::Format("v{0}", $ProjectVersion);
+        tag_name         = [string]::Format("v{0}", $ProjectVersion);
         target_commitish = "master";
-        name = [string]::Format("v{0}", $ProjectVersion);
-        body = $env:BHCommitMessage;
-        draft = $false;
-        prerelease = $true;
+        name             = [string]::Format("v{0}", $ProjectVersion);
+        body             = $env:BHCommitMessage;
+        draft            = $false;
+        prerelease       = $true;
     }
 
     #Only master builds are considered GA
@@ -561,17 +559,17 @@ task PublishGitHubRelease -if {-not $SkipPublish} Package,Test,{
         $releasedata.prerelease = $false
     }
 
-    if ($GitHubPublishAsDraft) {$releasedata.draft = $true}
+    if ($GitHubPublishAsDraft) { $releasedata.draft = $true }
 
     $auth = 'Basic ' + [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes($GitHubApiKey + ":x-oauth-basic"))
     $releaseParams = @{
-        Uri = $GitHubPublishURI
-        Method = 'POST'
-        Headers = @{
+        Uri         = $GitHubPublishURI
+        Method      = 'POST'
+        Headers     = @{
             Authorization = $auth
         }
         ContentType = 'application/json'
-        Body = (ConvertTo-Json $releaseData -Compress)
+        Body        = (ConvertTo-Json $releaseData -Compress)
     }
 
     try {
@@ -579,12 +577,12 @@ task PublishGitHubRelease -if {-not $SkipPublish} Package,Test,{
         $result = Invoke-RestMethod @releaseParams -ErrorVariable GitHubReleaseError
     } catch [System.Net.WebException] {
         #Git Hub Error Processing
-        $gitHubErrorInfo = $PSItem.tostring() | convertfrom-json
+        $gitHubErrorInfo = $PSItem.tostring() | ConvertFrom-Json
         if ($gitHubErrorInfo) {
             write-build Red "Error Received from $($releaseparams.uri.host): $($GitHubErrorInfo.Message)"
             switch ($GitHubErrorInfo.message) {
                 "Validation Failed" {
-                    $gitHubErrorInfo.errors | foreach {
+                    $gitHubErrorInfo.errors | ForEach-Object {
                         write-build Red "Task $($task.name) - Resource: $($PSItem.resource) - Field: $($PSItem.field) - Issue: $($PSItem.code)"
 
                         #Additional suggestion if release exists
@@ -594,8 +592,8 @@ task PublishGitHubRelease -if {-not $SkipPublish} Package,Test,{
                     }
                 }
             }
-            if ($PSItem.documentation_url) {write-build Red "More info at $($PSItem.documentation_url)"}
-        } else {throw}
+            if ($PSItem.documentation_url) { write-build Red "More info at $($PSItem.documentation_url)" }
+        } else { throw }
     }
 
     if ($GitHubReleaseError) {
@@ -606,40 +604,40 @@ task PublishGitHubRelease -if {-not $SkipPublish} Package,Test,{
     $uploadUriBase = $result.upload_url -creplace '\{\?name,label\}'  # Strip the , "?name=$artifact" part
 
     $uploadParams = @{
-        Method = 'POST';
-            Headers = @{
-                Authorization = $auth;
-            }
+        Method      = 'POST';
+        Headers     = @{
+            Authorization = $auth;
+        }
         ContentType = 'application/zip';
     }
     foreach ($artifactItem in $artifactPaths) {
-        $uploadparams.URI = $uploadUriBase + "?name=$(split-path $artifactItem -leaf)"
+        $uploadparams.URI = $uploadUriBase + "?name=$(Split-Path $artifactItem -leaf)"
         $uploadparams.Infile = $artifactItem
         $result = Invoke-RestMethod @uploadParams -erroraction stop
     }
 }
 
-task PublishPSGallery -if {-not $SkipPublish} Version,Test,{
-    if ($SkipPublish) {[switch]$SkipPSGallery = $true}
+task PublishPSGallery -if { -not $SkipPublish } Version, Test, {
+    if ($SkipPublish) { [switch]$SkipPSGallery = $true }
 
     #If this is a prerelease build, get the latest version of PowershellGet and PackageManagement if required
-    if ($BranchName -ne 'master' -and ((get-command find-package).version -lt [version]"1.1.7.2" -or (get-command find-script).version -lt [version]"1.6.6")) {
+    if ($BranchName -ne 'master' -and ((Get-Command find-package).version -lt [version]"1.1.7.2" -or (Get-Command find-script).version -lt [version]"1.6.6")) {
         write-build DarkYellow "Task $($task.name) - This is a prerelease module that requires a newer version of PackageManagement and PowershellGet than what you have installed in order to publish. Fetching from Powershell Gallery..."
 
-        Install-Module -Name PowershellGet,PackageManagement -Scope CurrentUser -AllowClobber -force -confirm:$false
-        Get-Module PowershellGet,PackageManagement | Remove-Module -force
-        import-Module PowershellGet -MinimumVersion 1.6 -force
+        Install-Module -Name PowershellGet, PackageManagement -Scope CurrentUser -AllowClobber -force -confirm:$false
+        Get-Module PowershellGet, PackageManagement | Remove-Module -force
+        Import-Module PowershellGet -MinimumVersion 1.6 -force
         Import-Module PackageManagement -MinimumVersion 1.1.7.0 -force
-        Import-PackageProvider (Get-Module PowershellGet | where Version -gt 1.6 | % Path) -Force | Out-Null
+        Import-PackageProvider (Get-Module PowershellGet | Where-Object Version -gt 1.6 | ForEach-Object Path) -Force | Out-Null
     }
 
     #TODO: Break this out into a function
     #We test it here instead of Build requirements because this isn't a "hard" requirement, you can still build locally while not meeting this requirement.
-    $packageMgmtVersion = (get-command find-package).version
+    $packageMgmtVersion = (Get-Command find-package).version
     if ($packageMgmtVersion -lt [version]"1.1.7.2") {
         write-build DarkYellow "Task $($task.name) - WARNING: You have PackageManagement version $packageMgmtVersion which is less than the recommended v1.1.7.2 or later running in your session. Uploading prerelease builds to the powershell gallery may fail. Please install with {Install-Module PackageManagement -MinimumVersion 1.1.7.2}, close your powershell session, and retry publishing"
     }
-    if ((get-command find-script).version -lt [version]"1.6.6") {
+    if ((Get-Command find-script).version -lt [version]"1.6.6") {
         write-build DarkYellow "Task $($task.name) - WARNING: WARNING: You have PowershellGet version $packageMgmtVersion which is less than the recommended v1.6.6 or later running in your session. Uploading prerelease builds to the powershell gallery may fail. Please install with {Install-Module PowershellGet -MinimumVersion 1.6.6}, close your powershell session, and retry publishing"
     }
 
@@ -658,65 +656,63 @@ task PublishPSGallery -if {-not $SkipPublish} Version,Test,{
         continue
     } else {
         $publishParams = @{
-                Path = $buildReleasePath
-                NuGetApiKey = $NuGetAPIKey
-                Repository = 'PSGallery'
+            Path        = $buildReleasePath
+            NuGetApiKey = $NuGetAPIKey
+            Repository  = 'PSGallery'
         }
         try {
             Publish-Module @publishParams @PassThruParams -ErrorAction Stop
         }
         #WriteErrorException appears to be a bug in the Linux Publish-Module cmdlet
-        catch [InvalidOperationException],[Microsoft.PowerShell.Commands.WriteErrorException] {
+        catch [InvalidOperationException], [Microsoft.PowerShell.Commands.WriteErrorException] {
             #Downgrade a conflict to a warning, as this is common with multiple build matrices.
             #TODO: Validate build matrices succeded before attempting and only do on one worker
             if ($psItem.exception.message -match 'cannot be published as the current version .* is already available in the repository|already exists and cannot be modified') {
-                write-warning $PSItem.exception.message
+                Write-Warning $PSItem.exception.message
             } else {
                 write-build Red "Task $($task.name) - Powershell Gallery Publish Failed"
                 throw $PSItem.Exception
             }
-        }
-        catch {
+        } catch {
             write-build Red "Task $($task.name) - Powershell Gallery Publish Failed"
             throw $PSItem.Exception
         }
     }
 }
 
-task PackageNuGet Test,{
+task PackageNuGet Test, {
     #Creates a temporary repository and registers it, uses publish-module which results in a nuget package
     try {
-        $SCRIPT:tempRepositoryName = "$($env:BHProjectName)-build-$(get-date -format 'yyyyMMdd-hhmmss')"
+        $SCRIPT:tempRepositoryName = "$($env:BHProjectName)-build-$(Get-Date -format 'yyyyMMdd-hhmmss')"
         Register-PSRepository -Name $tempRepositoryName -SourceLocation $env:BHBuildOutput
-        If (Get-Item -ErrorAction SilentlyContinue (join-path $env:BHBuildOutput "$($env:BHProjectName)*.nupkg")) {
+        If (Get-Item -ErrorAction SilentlyContinue (Join-Path $env:BHBuildOutput "$($env:BHProjectName)*.nupkg")) {
             Write-Build Green "Nuget Package for $($env:BHProjectName) already generated. Skipping..."
         } else {
             Publish-Module -Repository $tempRepositoryName -Path $BuildProjectPath -Force
         }
-    }
-    catch {Write-Error $PSItem}
+    } catch { Write-Error $PSItem }
     finally {
         Unregister-PSRepository $tempRepositoryName
     }
 }
 
-task InstallPSModule PackageNuGet,{
+task InstallPSModule PackageNuGet, {
     try {
-        register-psrepository -Name $tempRepositoryName -SourceLocation $env:BHBuildOutput -InstallationPolicy Trusted
+        Register-PSRepository -Name $tempRepositoryName -SourceLocation $env:BHBuildOutput -InstallationPolicy Trusted
         Install-Module -Name $env:BHProjectName -Repository $tempRepositoryName -Scope CurrentUser -Force
-    } catch {write-error $PSItem}
+    } catch { Write-Error $PSItem }
     finally {
-        unregister-psrepository $tempRepositoryName
+        Unregister-PSRepository $tempRepositoryName
     }
 }
 
 ### SuperTasks
 # These are the only supported items to run directly from Invoke-Build
-task Build Clean,Version,CopyFilesToBuildDir,UpdateMetadata
+task Build Clean, Version, CopyFilesToBuildDir, UpdateMetadata
 task Test Pester
-task Package Version,PreDeploymentChecks,PackageZip,PackageNuGet
-task Publish Version,PreDeploymentChecks,PublishPSGallery,PublishGitHubRelease
-task Install Version,PreDeploymentChecks,InstallPSModule
+task Package Version, PreDeploymentChecks, PackageZip, PackageNuGet
+task Publish Version, PreDeploymentChecks, PublishPSGallery, PublishGitHubRelease
+task Install Version, PreDeploymentChecks, InstallPSModule
 
 #Default Task - Build and Test
-task . Clean,Build,Test,Package
+task . Clean, Build, Test, Package

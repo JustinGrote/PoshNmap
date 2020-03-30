@@ -10,8 +10,6 @@ This function primarily exists to be mocked by Pester
 }
 
 function StartNmap ($argumentList,$computerName,[int]$updateInterval=200,[Switch]$Raw) {
-    [Collections.Arraylist]$nmapExeOutput = New-Object Collections.ArrayList
-    [Collections.Arraylist]$hostEntry = New-Object Collections.ArrayList
     if (-not $Raw) {
         $ArgumentList += "-oX","-",'--stats-every',"${updateInterval}ms"
     }
