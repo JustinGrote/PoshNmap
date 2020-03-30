@@ -1,7 +1,7 @@
 
 
 function FormatNmapOutput {
-<#
+    <#
 .SYNOPSIS
 Takes the raw formatting from ConvertFrom-NmapXML and makes a useful Powershell Object out of the output. Meant to be called from ConvertFrom-NmapXml
 .INPUTS
@@ -20,17 +20,17 @@ The raw formatting is still available as the nmaprun property on the object, to 
         [Switch]$Summary
     )
 
-    if (-not $inputNmapObject.nmaprun) {throwUser "This is not a valid Object output from Convert-NmapXML"}
+    if (-not $inputNmapObject.nmaprun) { throwUser "This is not a valid Object output from Convert-NmapXML" }
     $nmaprun = $inputNmapObject.nmaprun
 
     #Only return a summary if that was requested
-    if ($summary) {return (FormatNmapOutputSummary $nmapRun)}
+    if ($summary) { return (FormatNmapOutputSummary $nmapRun) }
 
     #Generate nicer host entries
-    $i=1
-    $itotal = $nmaprun.host | measure | % count
+    $i = 1
+    $itotal = $nmaprun.host | Measure-Object | ForEach-Object count
     foreach ($hostnode in $nmaprun.host) {
-        write-progress -Activity "Parsing NMAP Result" -Status "Processing Scan Entries" -CurrentOperation "Processing $i of $itotal" -PercentComplete (($i/$itotal)*100)
+        Write-Progress -Activity "Parsing NMAP Result" -Status "Processing Scan Entries" -CurrentOperation "Processing $i of $itotal" -PercentComplete (($i/$itotal)*100)
         FormatPoshNmapHost $hostnode
     }
 }

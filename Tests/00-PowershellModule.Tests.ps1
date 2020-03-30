@@ -33,7 +33,7 @@ Describe 'Powershell Module' {
         }
 
         It 'Has a valid root module' {
-            Test-Path $Manifest.RootModule -Type Leaf | Should Be $true
+            Test-Path (Join-Path $ModuleDirectory $Manifest.RootModule) -Type Leaf | Should Be $true
         }
 
         It 'Has a valid folder structure (ModuleName\Manifest or ModuleName\Version\Manifest)' {
@@ -61,7 +61,7 @@ Describe 'Powershell Module' {
         }
 
         It 'Exports all public functions' {
-            $FunctionFiles = Get-ChildItem Public -Filter *.ps1
+            $FunctionFiles = Get-ChildItem (Join-Path (Split-Path $ModuleManifestFile) 'Public') -Filter *.ps1
             $FunctionNames = $FunctionFiles.basename | ForEach-Object {$_ -replace '-', "-$($Manifest.Prefix)"}
             $ExFunctions = $Manifest.FunctionsToExport
             if ($ExFunctions -eq '*') {New-Variable -Name WarningModuleHasWildCardFunctions -Scope 1 -Value $true} else {
