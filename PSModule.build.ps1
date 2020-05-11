@@ -1,6 +1,6 @@
 #requires -version 5.1
 
 #region PowerCDBootstrap
-. ([scriptblock]::Create((Invoke-WebRequest -UseBasicParsing 'https://gist.githubusercontent.com/JustinGrote/2d3fdbac302847be33de8021add524ad/raw/d2ae195b349a2a0a6fa38730aca981e3a6ae8e10/PowerCDBootstrap.ps1')))
+. ([scriptblock]::Create((Invoke-WebRequest -UseBasicParsing 'https://gist.githubusercontent.com/JustinGrote/2d3fdbac302847be33de8021add524ad/raw/ccbac7fc46c9ab72a03e77d30ea7e3bd8d8f5c87/PowerCDBootstrap.ps1')))
 
 #endregion PowerCDBootstrap
