@@ -1,15 +1,22 @@
-#Use Mainline Mode (master increments on every commit)
-mode: Mainline
+#This configures Gitversion for the Gitlab Flow Branching Style
+#Master - Always deployable, will deploy to staging for programs, or to prerelease for libraries
+#Production - Always deployable, will deploy to production. You should PR master to production
+#Feature/MyFeature - Do development here and PR to master. Should not be merged unless it passes all tests
+#Release/v0.x.0 - Prepare a release separate from master for stabilization
 
+#Other recommendations
+#Fix forward by committing hotfixes to master and then merging or cherrypicking them to production
+#If you want to prepare a stable release
+
+mode: ContinuousDeployment
 branches:
-  vNext:
-    regex: vNext$
+  master:
     tag: beta
-    source-branches: ['master']
-    track-merge-target: true
-    is-release-branch: true
+    increment: Patch
+  release:
+    tag: rc
 
-#Custom commit messages to support Angular.js-style commit messages
+#Custom commit messages to support Conventional Commit syntax
 major-version-bump-message: (^(breaking|major)(\(.*\))?:)|(\+semver:\s?(breaking|major))|BREAKING CHANGE(:)
 minor-version-bump-message: (^(feat(ure)?|minor)(\(.*\))?:)|(\+semver:\s?(feat(ure)?|minor))
 patch-version-bump-message: (^((bug)?fix|patch|perf|refactor)(\(.*\))?:)|(\+semver:\s?((bug)?fix|patch))
