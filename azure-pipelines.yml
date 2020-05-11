@@ -28,6 +28,6 @@ stages:
       psVersion:
         - pwsh
         - powershell
-      script: '$verbosepreference='continue';$debugpreference='continue';./build.ps1 -verbose'
+      script: '$verbosepreference="continue";$debugpreference="continue";./build.ps1 -verbose'
       linuxContainer: 'skip'
       windowsContainer: 'skip'
