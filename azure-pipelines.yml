@@ -6,6 +6,7 @@ resources:
       type: github
       name: JustinGrote/PowerCD
       ref: refs/tags/v0.8.0 # optional ref to pin to
+      endpoint: github
 
 trigger:
   branches:
