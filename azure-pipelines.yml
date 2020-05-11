@@ -23,8 +23,8 @@ stages:
     parameters:
       vmImage:
         - 'ubuntu-latest'
-        - 'windows-latest'
-        - 'macOS-latest'
+        # - 'windows-latest'
+        # - 'macOS-latest'
       psVersion:
         - pwsh
         - powershell
