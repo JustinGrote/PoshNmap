@@ -70,10 +70,25 @@ try {
     $installedModule = Install-Module @InstallModuleParams -PassThru 4>$null
     if (-not $installedModule) {throw 'Error Installing PowerCD'}
     #FIXME: Remove after testing
-    Import-Module -ModuleInfo $installedModule -PassThru
-    get-module | fl | out-string
+
+    #Get Module Install Path
+    [IO.FileInfo]$moduleInstallPath = [String]$installedModule.installedLocation
+
+    #Find Module Manifest
+    function Find-ModuleManifestFromInstallLocation ([String]$ModulePath) {
+        $ModuleFilePath = [IO.FilePath]$ModulePath
+        @($ModuleFilePath, $ModuleFilePath.Parent) | foreach {
+            $manifestPath = Join-Path $ModuleFilePath [io.path]::ChangeExtension($PSItem.basename,'psd1')
+            if (Test-Path $manifestPath) {return $manifestPath}
+        }
+        #If we get this far there was a problem
+        throw "Could not find module manifest in $ModulePath"
+    }
+    $manifestPath = Find-ModuleManifestFromInstallLocation
+
+    Import-Module -Path $manifestPath -Force -PassThru
 } catch {
-    write-host "ERROR CAUGHT: $_"
+    write-host -fore Red "ERROR CAUGHT WHILE BOOTSTRAPPING MODULE: $_"
     throw $_
 }
 finally {
