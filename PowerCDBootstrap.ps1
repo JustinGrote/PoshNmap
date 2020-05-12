@@ -70,11 +70,11 @@ try {
     $installedModule = Install-Module @InstallModuleParams -PassThru 4>$null
     if (-not $installedModule) {throw 'Error Installing PowerCD'}
     #FIXME: Remove after testing
-    write-host "Installing Module $InstalledModule"
     $installedModule | Import-Module -PassThru
     get-module | fl | out-string
 } catch {
-    throw $PSItem.exception
+    write-host "ERROR CAUGHT: $_"
+    throw $_
 }
 finally {
     if ($BuildRoot) {
