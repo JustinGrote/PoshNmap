@@ -72,11 +72,11 @@ try {
     #FIXME: Remove after testing
 
     #Get Module Install Path
-    [IO.FileInfo]$moduleInstallPath = [String]$installedModule.installedLocation
+    [IO.DirectoryInfo]$moduleInstallPath = [String]$installedModule.installedLocation
 
     #Find Module Manifest
     function Find-ModuleManifestFromInstallLocation ([String]$ModulePath) {
-        $ModuleFilePath = [IO.FilePath]$ModulePath
+        $ModuleFilePath = [IO.DirectoryInfo]$ModulePath
         @($ModuleFilePath, $ModuleFilePath.Parent) | foreach {
             $manifestPath = Join-Path $ModuleFilePath [io.path]::ChangeExtension($PSItem.basename,'psd1')
             if (Test-Path $manifestPath) {return $manifestPath}
