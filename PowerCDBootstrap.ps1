@@ -70,7 +70,8 @@ try {
     $installedModule = Install-Module @InstallModuleParams -PassThru 4>$null
     if (-not $installedModule) {throw 'Error Installing PowerCD'}
     #FIXME: Remove after testing
-    $installedModule | Import-Module
+    write-host 'Installing Module $InstalledModule'
+    $installedModule | Import-Module -PassThru
 } finally {
     if ($BuildRoot) {
         Write-Host -fore cyan "Done PowerCD.Bootstrap $([string]$bootstrapTimer.elapsed)"
