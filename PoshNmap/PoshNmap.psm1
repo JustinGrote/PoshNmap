@@ -27,6 +27,7 @@ if ($AssembliesToLoad) {
     }
 }
 
+#region SourceInit
 #Dot source the files
 Foreach($FolderItem in 'Private','Public') {
     $ImportItemList = Get-ChildItem -Path $PSScriptRoot\$FolderItem\*.ps1 -ErrorAction SilentlyContinue
@@ -42,6 +43,7 @@ Foreach($FolderItem in 'Private','Public') {
         Export-ModuleMember -Function ($ImportItemList.basename | Where-Object {$PSitem -match '^\w+-\w+$'})
     }
 }
+#endregion SourceInit
 
 #Import Settings files as global objects based on their filename
 foreach ($ModuleSettingsItem in $ModuleSettings) {
