@@ -1,3 +1,5 @@
+
+
 if ($psEdition -ne 'Core') {
     $dotNetTarget = "net40-client"
 }

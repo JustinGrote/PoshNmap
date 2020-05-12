@@ -50,7 +50,8 @@ Describe "Invoke-Nmap" {
         (Invoke-Nmap -OutFormat PSObject).host.ports.port | where portid -match '445' | % protocol | should -be 'tcp'
     }
 
-    It "Output: SNMP Table output is correct" {
+    #Fixme: Mock SNMP
+    It "Output: SNMP Table output is correct" -Pending {
         (Invoke-Nmap -snmp).ports.scriptresult.'snmp-brute'.table | where password -match 'public' | Should -Not -BeNullOrEmpty
     }
 }
