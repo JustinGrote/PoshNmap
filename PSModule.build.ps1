@@ -1,6 +1,5 @@
 #requires -version 5.1
 
 #region PowerCDBootstrap
-. ./PowerCDBootstrap.ps1
-
+. ([scriptblock]::Create((Invoke-WebRequest -UseBasicParsing 'https://git.io/PCDBootstrap')))
 #endregion PowerCDBootstrap
