@@ -15,9 +15,9 @@ if ($BuildRoot) {
     $bootstrapTimer = [Diagnostics.Stopwatch]::StartNew()
 }
 
+#First checks for a "metabuild" (PowerCD building PowerCD), then does normal detection
 try {
     Write-Debug "Searching for PowerCD MetaBuild in $pwd"
-    #Test if this is a MetaBuild
 
     #Workaround for running a bootstrap script from the internet
     $PSModuleBuildScriptPath = if ($PSSCRIPTROOT) {$PSScriptRoot} else {Split-Path $MyInvocation.ScriptName}
@@ -37,61 +37,61 @@ try {
         }
     }
 
-    #Test if PowerCD is loaded already
-    $CandidateModule = Get-Module PowerCD
-    if ($CandidateModule) {
-        if ($MetaBuildPath -and (Split-Path $CandidateModule.Path) -ne (Split-Path $MetaBuildPath)) {
-            Write-Warning "Detected we are in PowerCD source folder $MetaBuildPath but PowerCD is currently loaded from $($LoadModule.Path). Reloading to current source module"
-            Import-Module -Name $MetaBuildPath -Force
-            return
-        }
-        if ($PowerCDVersion) {
-            if ($CandidateModule.Version -eq $PowerCDVersion) {
-                Write-Debug "Loaded PowerCD version matches PowerCDVersion"
-                return
-            } else {
-                throw [NotImplementedException]"The loaded PowerCD Module Version $($CandidateModule.Version) is not the same as the requested $PowerCDVersion. Please load the requested module. In the future this will autodetect and download the correct version"
+    #Normal bootstrap
+    function BootstrapModule {
+        param (
+            $ModuleSpecification,
+            $Path = (Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'PowerCD')
+        )
+        $vEnvDir = New-Item -ItemType Directory -Force -Path $Path
+
+        try {
+            $currentPSModulePath = $env:PSModulePath
+            $env:PSModulePath = $vEnvDir,$env:PSModulePath -join [io.path]::PathSeparator
+
+            #This is done for performance. If the module is found loaded it won't try to search filesystem
+            $moduleLoaded = (Get-Module -FullyQualifiedName $moduleSpecification -ErrorAction SilentlyContinue)
+            $moduleAvailable = if (-not $moduleLoaded) {
+                (Get-Module -ListAvailable -FullyQualifiedName $moduleSpecification -ErrorAction SilentlyContinue)
+            } else { $true }
+
+            if (-not $moduleLoaded) {
+                $moduleParams = @{
+                    Name = $moduleSpecification.ModuleName
+                    MinimumVersion = $moduleSpecification.ModuleVersion
+                    MaximumVersion = $moduleSpecification.MaximumVersion
+                    Force = $true
+                    ErrorAction = 'Stop'
+                }
+                if (-not $moduleAvailable) {
+                    Write-Verbose "$($ModuleSpecification.ModuleName) not found locally. Bootstrapping..."
+                    Save-Module @moduleParams -Path $vEnvDir
+                }
+                Import-Module @moduleParams
             }
-        } else {
-            #Module is loaded but no version specified, use existing
-            #TODO: Check for latest powercd version
-            Write-Debug "No PowerCDVersion specified, using existing loaded module"
-            return
+        } catch {
+            throw $PSItem
+        } finally {
+            #Revert PSModulePath
+            $env:PSModulePath = $currentPSModulePath
         }
     }
 
-    Write-Verbose "PowerCD: Module not installed locally. Bootstrapping..."
-    $InstallModuleParams = @{
-        Name = 'PowerCD'
-        Scope = 'CurrentUser'
-        Force = $true
+    $pcdModuleSpec = @{
+        ModuleName = 'PowerCD'
     }
-    if ($PowerCDVersion) {$InstallModuleParams.RequiredVersion = $PowerCDVersion}
-    $installedModule = Install-Module @InstallModuleParams -PassThru 4>$null
-    if (-not $installedModule) {throw 'Error Installing PowerCD'}
-    #FIXME: Remove after testing
-
-    #Get Module Install Path
-    [IO.DirectoryInfo]$moduleInstallPath = [String]$installedModule.installedLocation
-
-    #Find Module Manifest
-    function Find-ModuleManifestFromInstallLocation ([String]$ModulePath) {
-        $ModuleFilePath = [IO.DirectoryInfo]$ModulePath
-        @($ModuleFilePath, $ModuleFilePath.Parent) | foreach {
-            $manifestPath = Join-Path $ModuleFilePath [io.path]::ChangeExtension($PSItem.basename,'psd1')
-            if (Test-Path $manifestPath) {return $manifestPath}
-        }
-        #If we get this far there was a problem
-        throw "Could not find module manifest in $ModulePath"
+    #Fallback to a minimum PowerCD requirement
+    if ($PowerCDVersion) {
+        $pcdModuleSpec.RequiredVersion = $PowerCDVersion
+    } else {
+        $pcdModuleSpec.ModuleVersion = '0.8.0'
     }
-    $manifestPath = Find-ModuleManifestFromInstallLocation
+    BootstrapModule $pcdModuleSpec
 
-    Import-Module -Path $manifestPath -Force -PassThru
 } catch {
     write-host -fore Red "ERROR CAUGHT WHILE BOOTSTRAPPING MODULE: $_"
     throw $_
-}
-finally {
+} finally {
     if ($BuildRoot) {
         Write-Host -fore cyan "Done PowerCD.Bootstrap $([string]$bootstrapTimer.elapsed)"
     }
