@@ -73,7 +73,10 @@ try {
     write-host "Installing Module $InstalledModule"
     $installedModule | Import-Module -PassThru
     get-module | fl | out-string
-} finally {
+} catch {
+    throw $PSItem.exception
+}
+finally {
     if ($BuildRoot) {
         Write-Host -fore cyan "Done PowerCD.Bootstrap $([string]$bootstrapTimer.elapsed)"
     }
