@@ -22,9 +22,9 @@ stages:
   - template: .ci/PowerCD.yml@powercd
     parameters:
       vmImage:
-        #- 'ubuntu-latest'
-        - 'windows-latest'
-        # - 'macOS-latest'
+        - 'ubuntu-latest'
+        #- 'windows-latest'
+        #- 'macOS-latest'
       psVersion:
         - pwsh
         - powershell
