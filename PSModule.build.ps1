@@ -5,5 +5,6 @@
 #endregion PowerCDBootstrap
 
 Task CITesting -Before PowerCD.Clean {
-    & dotnet tool run dotnet-gitversion
+    dotnet gitversion
+    dotnet dotnet-gitversion
 }
