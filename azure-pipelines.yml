@@ -29,6 +29,7 @@ stages:
         - pwsh
         - powershell
       script: |
+        $erroractionpreference = 'Continue'
         write-host $(dotnet tool install gitversion.tool --global *>&1)
         write-host $(dotnet tool list --global *>&1)
         write-host $(dotnet-gitversion -h *>&1)
