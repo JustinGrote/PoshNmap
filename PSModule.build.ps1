@@ -7,7 +7,7 @@
 task TestPrereqs -Before PowerCD.Test.Pester {
     if (-not (command 'nmap' -ErrorAction SilentlyContinue)) {
         if ($isLinux) {
-            apt-get install nmap
+            sudo apt install nmap -y
         } else {
             choco install nmap -y
         }

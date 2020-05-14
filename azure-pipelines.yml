@@ -1,11 +1,10 @@
-# Repo: Contoso/WindowsProduct
-# File: azure-pipelines.yml
+# aka.ms/yaml
 resources:
   repositories:
     - repository: powercd
       type: github
       name: JustinGrote/PowerCD
-      ref: refs/tags/v0.8.0 # optional ref to pin to
+      # ref: refs/tags/v0.8.1 # optional ref to pin to
       endpoint: github
 
 trigger:
@@ -16,21 +15,15 @@ trigger:
       - ci
 
 stages:
-- stage: build
-  displayName: Build Powershell Module
-  jobs:
-  - template: .ci/PowerCD.yml@powercd
-    parameters:
-      vmImage:
-        - 'ubuntu-latest'
-        #- 'windows-latest'
-        #- 'macOS-latest'
-      psVersion:
-        - pwsh
-        - powershell
-      script: |
-        $erroractionpreference = 'Continue'
-        "Dotnet Tool Install"
-        ./build.ps1 -verbose
-      linuxContainer: 'skip'
-      windowsContainer: 'skip'
+- template: .ci/PowerCD.yml
+  parameters:
+    vmImage:
+      - 'ubuntu-latest'
+      - 'windows-latest'
+      - 'macOS-latest'
+    psVersion:
+      - pwsh
+      - powershell
+    script: './build.ps1'
+    linuxContainer: 'skip'
+    windowsContainer: 'skip'
