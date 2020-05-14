@@ -4,8 +4,9 @@ resources:
     - repository: powercd
       type: github
       name: JustinGrote/PowerCD
-      # ref: refs/tags/v0.8.1 # optional ref to pin to
       endpoint: github
+      #ref: refs/heads/ci # optional ref to pin to
+
 
 trigger:
   branches:
@@ -15,7 +16,7 @@ trigger:
       - ci
 
 stages:
-- template: .ci/PowerCD.yml
+- template: .ci/PowerCD.yml@powercd
   parameters:
     vmImage:
       - 'ubuntu-latest'
