@@ -4,10 +4,12 @@
 . ([scriptblock]::Create((Invoke-WebRequest -UseBasicParsing 'https://git.io/PCDBootstrap')))
 #endregion PowerCDBootstrap
 
-task PoshNmap.TestPrereqs -Before Test {
-    if ($isLinux) {
-        apt-get install nmap
-    } else {
-        choco install nmap -y
+task PoshNmap.TestPrereqs -Before PowerCD.Test {
+    if (-not (command 'nmap' -ErrorAction SilentlyContinue)) {
+        if ($isLinux) {
+            apt-get install nmap
+        } else {
+            choco install nmap -y
+        }
     }
 }
