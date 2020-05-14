@@ -4,7 +4,10 @@
 . ([scriptblock]::Create((Invoke-WebRequest -UseBasicParsing 'https://git.io/PCDBootstrap')))
 #endregion PowerCDBootstrap
 
-Task CITesting -Before PowerCD.Clean {
-    dotnet tool list --local
-    dotnet tool list --global
+task PoshNmap.TestPrereqs -Before Test {
+    if ($isLinux) {
+        apt-get install nmap
+    } else {
+        choco install nmap -y
+    }
 }
