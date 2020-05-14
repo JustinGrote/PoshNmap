@@ -5,7 +5,7 @@ resources:
       type: github
       name: JustinGrote/PowerCD
       endpoint: github
-      #ref: refs/heads/ci # optional ref to pin to
+      ref: refs/heads/ci # optional ref to pin to
 
 
 trigger:
