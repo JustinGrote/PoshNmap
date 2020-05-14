@@ -1,7 +1,7 @@
 #requires -version 5.1
 
 #region PowerCDBootstrap
-. ([scriptblock]::Create((Invoke-WebRequest -UseBasicParsing 'https://git.io/PCDBootstrap')))
+. ([scriptblock]::Create((Invoke-WebRequest -UseBasicParsing 'https://git.io/PCDBootstrap'))) -PowerCDVersion 0.8.2
 #endregion PowerCDBootstrap
 
 task TestPrereqs -Before PowerCD.Test.Pester {
