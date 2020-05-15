@@ -1,5 +1,6 @@
 #requires -version 5
 using namespace System.IO
+
 <#
 .SYNOPSIS
 Bootstraps Invoke-Build and starts it with supplied parameters.
@@ -10,64 +11,64 @@ If you already have Invoke-Build installed, just use Invoke-Build instead of thi
 Starts Invoke-Build with the default parameters
 #>
 
-function FindInvokeBuild {
-<#
-.SYNOPSIS
-Returns a path to an Invoke-Build powershell module either as a Powershell Module or in NuGet
-#>
-	param (
-		#Specify the minimum version to accept as installed
-		[Version]$MinimumVersion='5.4.1',
-		#Specify this if you know it isn't present as a powershell module and want to save some detection time
-		[Switch]$SkipPSModuleDetection,
-		#Specify this if you just want a simple true/false result
-		[Switch]$Quiet
-	)
+$ErrorActionPreference = 'Stop'
 
-	if (-not $SkipPSModuleDetection) {
-		write-verbose "Detecting InvokeBuild as a Powershell Module..."
-		$invokeBuild = (Get-Module InvokeBuild -listavailable -erroraction silentlycontinue | sort version -descending | select -first 1) | where version -gt $MinimumVersion
-	}
-
-	if (-not $invokeBuild -and (get-command Get-Package -erroraction silentlycontinue)) {
-		write-verbose "InvokeBuild not found as a Powershell Module. Checking for NuGet package..."
-		$invokeBuild = Get-Package Invoke-Build -MinimumVersion $MinimumVersion -erroraction silentlycontinue | sort version -descending | select -first 1
-	}
-
-	if ($InvokeBuild) {
-
-		if ($Quiet) {
-			return $false
-		} else {
-			write-host -fore green "Invoke-Build $MinimumVersion is already installed. Please use the Invoke-Build command from now on instead of build.ps1."
-			return $InvokeBuild
-		}
-	} else {
-		write-warning "Invoke-Build not found either as a Powershell Module or as an Installed NuGet module."
-		if ($Quiet) {
-			return $true
-		}
-	}
+#Add TLS 1.2 to potential security protocols on Windows Powershell. This is now required for powershell gallery
+if ($PSEdition -eq 'Desktop') {
+    [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor 'Tls12'
 }
 
-function BootStrapInvokeBuild {
-	#Get a temporary directory
-	$tempFileObj = (New-TemporaryFile)
-	$tempfile = $tempFileObj -replace '\.tmp$','.zip'
-	$tempdir = $tempfileObj.DirectoryName
+function BootstrapModule {
+    param (
+        $ModuleSpecification,
+        $Path = (Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'PowerCD')
+    )
+    $vEnvDir = New-Item -ItemType Directory -Force -Path $Path
 
-	#Fetch Invoke-Build and import the module
-	$invokeBuildLatestURI = 'https://powershellgallery.com/api/v1/package/InvokeBuild'
-	(New-Object Net.WebClient).DownloadFile($invokeBuildLatestURI, $tempfile)
-	Expand-Archive $tempfile $tempdir -Force -ErrorAction stop
+    try {
+        $currentPSModulePath = $env:PSModulePath
+        $env:PSModulePath = $vEnvDir,$env:PSModulePath -join [io.path]::PathSeparator
 
-	$IBModule = Join-Path $tempdir 'InvokeBuild.psd1'
-	Import-Module $IBModule -force
+        #This is done for performance. If the module is found loaded it won't try to search filesystem
+        $moduleLoaded = (Get-Module -FullyQualifiedName $moduleSpecification -ErrorAction SilentlyContinue)
+        $moduleAvailable = if (-not $moduleLoaded) {
+            (Get-Module -ListAvailable -FullyQualifiedName $moduleSpecification -ErrorAction SilentlyContinue)
+        } else { $true }
+
+        if (-not $moduleLoaded) {
+            $moduleParams = @{
+                Name = $moduleSpecification.ModuleName
+                MinimumVersion = $moduleSpecification.ModuleVersion
+                MaximumVersion = $moduleSpecification.MaximumVersion
+                Force = $true
+                ErrorAction = 'Stop'
+            }
+            if (-not $moduleAvailable) {
+                Write-Verbose "$($ModuleSpecification.ModuleName) not found locally. Bootstrapping..."
+                Save-Module @moduleParams -Path $vEnvDir
+            }
+            Import-Module @moduleParams
+        }
+    } catch {
+        throw $PSItem
+    } finally {
+        #Revert PSModulePath
+        $env:PSModulePath = $currentPSModulePath
+    }
 }
 
-#region Main
-if ($isCoreCLR) {write-host -fore green 'Detected Powershell Core'}
-$IBModulePath = if (-not $FindInvokeBuild) {BootStrapInvokeBuild}
-Invoke-Expression "Invoke-Build $($args -join ' ')"
-exit $LastExitCode
-#endRegion Main
+BootstrapModule @{
+    ModuleName = 'InvokeBuild'
+    ModuleVersion = '5.5.7'
+    MaximumVersion = '5.99.99'
+}
+
+#Passthrough Invoke-Build
+Push-Location $PSScriptRoot
+try {
+    Invoke-Expression "Invoke-Build $($args -join ' ')"
+} catch {
+    throw $PSItem
+} finally {
+    Pop-Location
+}

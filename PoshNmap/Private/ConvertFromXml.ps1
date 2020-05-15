@@ -15,7 +15,14 @@ Uses the newtonsoft.json library to convert XML into an intermediate object. Sup
         [Switch]$Raw
     )
 
-    $json = [JsonConvert]::SerializeXmlNode($Xml,'Indented')
+    if ($useLegacyXMLDeserializer) {
+        Add-Type -AssemblyName System.Xml.Linq
+        $xobject = [Xml.Linq.XDocument]::Parse($xml.OuterXml)
+        $json = [JsonConvert]::SerializeXNode($xobject,'Indented')
+    } else {
+        $json = [JsonConvert]::SerializeXmlNode($Xml,'Indented')
+    }
+
 
     if (-not $Raw) {
         [Regex]$MatchConvertedAmpersand = '(?m)(?<=\s+\")(@)(?=.+\"\:)'

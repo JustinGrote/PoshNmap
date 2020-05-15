@@ -56,7 +56,10 @@ function Invoke-Nmap {
         #A list of SNMP communities to scan. Defaults to public and private
         [String[]]
         [Parameter()]
-        $snmpCommunityList = @("public","private")
+        $snmpCommunityList = @("public","private"),
+
+        #Run one or more nmap scripts along with the operation
+        [String[]]$Script
     )
 
     if ($ArgumentList) {$ArgumentList = $ArgumentList.split(' ')}

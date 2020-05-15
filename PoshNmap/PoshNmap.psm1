@@ -1,8 +1,27 @@
+
+
 if ($psEdition -ne 'Core') {
     $dotNetTarget = "net40-client"
 }
 
-$AssembliesToLoad = Get-ChildItem -Path "$PSScriptRoot\lib\*-$dotNetTarget.dll" -ErrorAction SilentlyContinue
+#Special Newtonsoft Handling
+try {
+    $loadedNewtonsoftVersion = [version]([newtonsoft.json.jsonconvert].assembly.fullname -replace '^.+Version=([\d\.]+),.+$','$1')
+} catch {
+    Write-Verbose "Newtonsoft.Json not loaded"
+}
+if ($PSEdition -ne 'Core') {
+    if ($loadedNewtonSoftVersion) {
+        if ($loadedNewtonSoftVersion.major -lt '11') {
+            Write-Debug "Already loaded Newtonsoft.Json $loadedNewtonsoftVersion was detected and is less than version 11, falling back to compatible behavior"
+            $SCRIPT:useLegacyXMLDeserializer = $true
+        }
+    } else {
+        Add-Type -Path $PSSCriptRoot\PoshNmap\lib\Newtonsoft.Json-net40-client.dll
+    }
+}
+
+#$AssembliesToLoad = Get-ChildItem -Path "$PSScriptRoot\lib\*-$dotNetTarget.dll" -ErrorAction SilentlyContinue
 
 if ($AssembliesToLoad) {
     #If we are in a build or a pester test, load assemblies from a temporary file so they don't lock the original file
@@ -25,6 +44,7 @@ if ($AssembliesToLoad) {
     }
 }
 
+#region SourceInit
 #Dot source the files
 Foreach($FolderItem in 'Private','Public') {
     $ImportItemList = Get-ChildItem -Path $PSScriptRoot\$FolderItem\*.ps1 -ErrorAction SilentlyContinue
@@ -40,6 +60,7 @@ Foreach($FolderItem in 'Private','Public') {
         Export-ModuleMember -Function ($ImportItemList.basename | Where-Object {$PSitem -match '^\w+-\w+$'})
     }
 }
+#endregion SourceInit
 
 #Import Settings files as global objects based on their filename
 foreach ($ModuleSettingsItem in $ModuleSettings) {
