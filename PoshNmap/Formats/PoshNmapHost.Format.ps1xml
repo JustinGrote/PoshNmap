@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Configuration>
+<ViewDefinitions>
+<View>
+  <Name>PoshNmapHost</Name>
+  <ViewSelectedBy>
+    <TypeName>PoshNmapHost</TypeName>
+  </ViewSelectedBy>
+  <TableControl>
+    <AutoSize />
+    <TableHeaders>
+      <TableColumnHeader>
+        <Width>15</Width>
+      </TableColumnHeader>
+      <TableColumnHeader>
+      </TableColumnHeader>
+      <TableColumnHeader>
+        <Width>6</Width>
+      </TableColumnHeader>
+      <TableColumnHeader>
+        <Width>5</Width>
+      </TableColumnHeader>
+      <TableColumnHeader>
+        <Label>Ports</Label>
+      </TableColumnHeader>
+    </TableHeaders>
+    <TableRowEntries>
+      <TableRowEntry>
+        <TableColumnItems>
+          <TableColumnItem>
+            <PropertyName>IPv4</PropertyName>
+          </TableColumnItem>
+          <TableColumnItem>
+            <PropertyName>FQDN</PropertyName>
+          </TableColumnItem>
+          <TableColumnItem>
+            <PropertyName>Status</PropertyName>
+          </TableColumnItem>
+          <TableColumnItem>
+            <PropertyName>OpenPorts</PropertyName>
+          </TableColumnItem>
+          <TableColumnItem>
+            <ScriptBlock>
+            $ports = @()
+            foreach ($portItem in $PSItem.ports) {
+              if ($portItem.Services.Name -ne 'unknown') {$ports += $portItem.Services.Name}
+              else {$ports += $portItem.protocol,$portItem.port -join '/'}
+            }
+            $ports -join ', '
+            <!--
+            foreach ($portItem in $PSItem.ports) {
+                            if ($PortItem.services.name -not 'unknown') {$PortItem.services.name}
+                            else {$PortItem.protocol,$PortItem.port -join ':'}
+                         }-->
+            </ScriptBlock>
+          </TableColumnItem>
+        </TableColumnItems>
+      </TableRowEntry>
+    </TableRowEntries>
+  </TableControl>
+</View>
+</ViewDefinitions>
+</Configuration>
