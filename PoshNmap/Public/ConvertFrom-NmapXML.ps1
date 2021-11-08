@@ -32,7 +32,7 @@ Takes an NMAP run output and converts it into JSON
             if ($OutFormat -ne 'PoshNmap') {
                 $xmlDocument += $nmapLineItem
             #If this is a host entry, start capturing a host buffer
-            } elseif ($nmapLineItem -match '^<host') {
+            } elseif ($nmapLineItem -match '^<host ') {
                 $hostEntry += $nmapLineItem
             } elseif ($hostentry.count -ge 1) {
                 if ($nmapLineItem -match '^</host>$') {
